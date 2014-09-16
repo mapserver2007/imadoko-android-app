@@ -16,9 +16,9 @@ public class AppConstants {
     
     /** WebSocketサーバ URI */
     public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
-//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.3:9224";
+//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.4:9224";
     public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
-//    public static final String AUTH_URL = "http://192.168.0.3:9224/auth";
+//    public static final String AUTH_URL = "http://192.168.0.4:9224/auth";
     /** LogID */
     public static final String TAG_APPLICATION = "Application";
     public static final String TAG_ASYNCTASK = "AsyncTask";
