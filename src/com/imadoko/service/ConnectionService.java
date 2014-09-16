@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import android.app.Service;
 import android.content.Intent;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -57,15 +58,25 @@ public class ConnectionService extends Service {
     
     private void createLocationManager() {
         _locationListener = new LocationListener() {
-            @Override public void onLocationChanged(final Location location) {}
+            @Override public void onLocationChanged(Location location) {}
             @Override public void onProviderDisabled(final String provider) {}
             @Override public void onProviderEnabled(final String provider) {}
             @Override public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
         };
+        
         _locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         HandlerThread gpsThread = new HandlerThread("GPSThread");
         gpsThread.start();
-        _locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, _locationListener, gpsThread.getLooper());
+
+        Criteria criteria = new Criteria();
+        criteria.setBearingRequired(false);  // 方位不要
+        criteria.setSpeedRequired(false);    // 速度不要
+        criteria.setAltitudeRequired(false); // 高度不要
+        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        String provider = _locationManager.getBestProvider(criteria, true);
+        
+        _locationManager.requestLocationUpdates(provider, 10000, 10, _locationListener, gpsThread.getLooper());
     }
     
     private Location getLastKnownLocation() {
@@ -123,7 +134,7 @@ public class ConnectionService extends Service {
         _ws = null;
         sendBroadcast("WebSocket終了");
     }
-    
+
     private void createWebSocketConnection() {
         final Handler handler = new Handler();
 
