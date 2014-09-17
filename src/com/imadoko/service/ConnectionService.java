@@ -28,6 +28,11 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationRequest;
+
 import com.imadoko.app.AppConstants;
 import com.imadoko.async.AsyncHttpTaskLoader;
 import com.imadoko.entity.HttpEntity;
@@ -40,8 +45,10 @@ public class ConnectionService extends Service {
     private Timer _timer;
     private String _authKey;
     private String _senderId;
-    private LocationManager _locationManager;
-    private LocationListener _locationListener;
+    private LocationRequest _locationRequest;
+    private LocationClient _locationClient;
+    private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
+    private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
     
     @Override
     public void onCreate() {
@@ -57,41 +64,38 @@ public class ConnectionService extends Service {
     }
     
     private void createLocationManager() {
-        _locationListener = new LocationListener() {
-            @Override public void onLocationChanged(Location location) {}
-            @Override public void onProviderDisabled(final String provider) {}
-            @Override public void onProviderEnabled(final String provider) {}
-            @Override public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-        };
         
-        _locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        HandlerThread gpsThread = new HandlerThread("GPSThread");
-        gpsThread.start();
-
-        Criteria criteria = new Criteria();
-        criteria.setBearingRequired(false);  // 方位不要
-        criteria.setSpeedRequired(false);    // 速度不要
-        criteria.setAltitudeRequired(false); // 高度不要
-        criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
-        String provider = _locationManager.getBestProvider(criteria, true);
+        _locationRequest = LocationRequest.create();
+        _locationRequest.setInterval(10000);
+        _locationRequest.setFastestInterval(3000);
+        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         
-        _locationManager.requestLocationUpdates(provider, 10000, 10, _locationListener, gpsThread.getLooper());
-    }
-    
-    private Location getLastKnownLocation() {
-        // GPS、Wi-Fiの順にチェック
-        String[] providers = new String[] { LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER };
-        for (String provider : providers) {
-            if (provider != null && _locationManager.isProviderEnabled(provider)) {
-                Location location = _locationManager.getLastKnownLocation(provider);
-                if (location != null) {
-                    return location;
-                }
+        /**
+         * 接続時・切断時のコールバック.
+         */
+        _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
+            @Override
+            public void onConnected(Bundle bundle) {
+                Log.d(AppConstants.TAG_LOCATION, "location on connected");
             }
-        }
-        
-        return null;
+            @Override
+            public void onDisconnected() {
+                Log.d(AppConstants.TAG_LOCATION, "location on disconnected");
+            }
+        };
+
+        /**
+         * 接続失敗時のコールバック.
+         */
+        _onConnectionFailedListener = new GooglePlayServicesClient.OnConnectionFailedListener() {
+            @Override
+            public void onConnectionFailed(ConnectionResult connectionResult) {
+                Log.d(AppConstants.TAG_LOCATION, "location connect failure");
+            }
+        };
+
+        _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
+        _locationClient.connect();
     }
     
     private void sendBroadcast(String message) {
@@ -113,8 +117,9 @@ public class ConnectionService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        _locationManager.removeUpdates(_locationListener);
-        _locationListener = null;
+        if (_locationClient != null) {
+            _locationClient.disconnect();
+        }
         Log.d(AppConstants.TAG_SERVICE, "Service end");
         if (_timer != null) {
             _timer.cancel();
@@ -214,13 +219,17 @@ public class ConnectionService extends Service {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Location location = getLastKnownLocation();
-                        if (location != null) {
-                            String lng = String.valueOf(location.getLongitude());
-                            String lat = String.valueOf(location.getLatitude());
-                            sendBroadcast(lng + "," + lat);
-                            String json = "{\"authKey\":\"" + _authKey + "\",\"senderId\":\"" + _senderId + "\",\"request\":\"location\",\"lng\":\"" + lng + "\",\"lat\":\"" + lat + "\"}";
-                            _ws.send(json);
+
+                        // 接続されているときだけ現在地を取得
+                        if (_locationClient.isConnected()) {
+                            Location location = _locationClient.getLastLocation();
+                            if (location != null) {
+                                String lng = String.valueOf(location.getLongitude());
+                                String lat = String.valueOf(location.getLatitude());
+                                sendBroadcast(lng + "," + lat);
+                                String json = "{\"authKey\":\"" + _authKey + "\",\"senderId\":\"" + _senderId + "\",\"request\":\"location\",\"lng\":\"" + lng + "\",\"lat\":\"" + lat + "\"}";
+                                _ws.send(json);
+                            }
                         }
                     }
                 });

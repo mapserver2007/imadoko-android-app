@@ -25,6 +25,7 @@ public class AppConstants {
     public static final String TAG_HTTP = "Http";
     public static final String TAG_WEBSOCKET = "WebSocket";
     public static final String TAG_SERVICE = "Service";
+    public static final String TAG_LOCATION = "Location";
     /** salt */
     public static final String SECURITY_SALT = "1xd5pEBShVey9LFz3rMVHHdrRkKbLAuNuun9fS7x";
     
