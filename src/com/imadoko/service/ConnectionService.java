@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import net.arnx.jsonic.JSON;
+
 import org.apache.http.HttpStatus;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
@@ -36,6 +38,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.imadoko.app.AppConstants;
 import com.imadoko.async.AsyncHttpTaskLoader;
 import com.imadoko.entity.HttpEntity;
+import com.imadoko.entity.WebSocketEntity;
+import com.imadoko.entity.WebSocketResponseEntity;
 import com.imadoko.model.AuthManager;
 
 public class ConnectionService extends Service {
@@ -49,7 +53,9 @@ public class ConnectionService extends Service {
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
-    
+
+    private WebSocketResponseEntity _responseEntity;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -57,19 +63,19 @@ public class ConnectionService extends Service {
         createLocationManager();
     }
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
         startAuth();
         return START_STICKY;
     }
-    
+
     private void createLocationManager() {
-        
         _locationRequest = LocationRequest.create();
         _locationRequest.setInterval(10000);
         _locationRequest.setFastestInterval(3000);
         _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        
+
         /**
          * 接続時・切断時のコールバック.
          */
@@ -97,7 +103,7 @@ public class ConnectionService extends Service {
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
-    
+
     private void sendBroadcast(String message) {
         Intent sendIntent = new Intent(ACTION);
         sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, message);
@@ -113,7 +119,7 @@ public class ConnectionService extends Service {
             return;
         }
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -125,13 +131,12 @@ public class ConnectionService extends Service {
             _timer.cancel();
         }
     }
-    
+
     @Override
     public IBinder onBind(Intent arg0) {
-        // TODO 自動生成されたメソッド・スタブ
         return null;
     }
-    
+
     private void onWebSocketClose() {
         if (_timer != null) {
             _timer.cancel();
@@ -150,27 +155,31 @@ public class ConnectionService extends Service {
             sendBroadcast(AppConstants.EXCEPTION);
             return;
         }
-        
+
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(AppConstants.WEBSOCKET_AUTHKEY_HEADER, _authKey);
-        
+
         _ws = new WebSocketClient(uri, new Draft_17(), headers, 0) {
             @Override
             public void onOpen(ServerHandshake handShake) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onOpen");
+
+                final WebSocketEntity pollingEntity = new WebSocketEntity();
+                pollingEntity.setAuthKey(_authKey);
+                pollingEntity.setRequestId("polling_from_android");
+
                 _timer = new Timer();
                 _timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         if (_ws.getReadyState() == WebSocket.READYSTATE.OPEN) {
-                            String json = "{\"authKey\":\"" + _authKey + "\",\"request\":\"polling_from_android\"}";
-                            _ws.send(json);
+                            _ws.send(JSON.encode(pollingEntity));
                         } else {
                             _timer.cancel();
                         }
                     }
                 }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
-                
+
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -184,7 +193,7 @@ public class ConnectionService extends Service {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
                 Log.d(AppConstants.TAG_WEBSOCKET, reason);
                 onWebSocketClose();
-                
+
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -193,7 +202,7 @@ public class ConnectionService extends Service {
                     }
                 }, AppConstants.RECONNECT_INTERVAL);
             }
-            
+
             @Override
             public void onError(Exception e) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onError");
@@ -204,31 +213,24 @@ public class ConnectionService extends Service {
 
             @Override
             public void onMessage(final String jsonStr) {
-                JSONObject json;
-                try {
-                    json = new JSONObject(jsonStr);
-                    _senderId = json.getString("senderId");
-                    if (_authKey.equals(json.getString("authKey"))) {
-                        Log.d(AppConstants.TAG_WEBSOCKET, "auth error at getLocation");
-                    }
-                } catch (JSONException e) {
-                    Log.d(AppConstants.TAG_WEBSOCKET, "Invalid data");
+                _responseEntity = JSON.decode(jsonStr, WebSocketResponseEntity.class);
+                if (!_authKey.equals(_responseEntity.getAuthKey())) {
+                    Log.d(AppConstants.TAG_WEBSOCKET, "auth error at getLocation");
                     return;
                 }
 
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-
                         // 接続されているときだけ現在地を取得
                         if (_locationClient.isConnected()) {
                             Location location = _locationClient.getLastLocation();
                             if (location != null) {
-                                String lng = String.valueOf(location.getLongitude());
-                                String lat = String.valueOf(location.getLatitude());
-                                sendBroadcast(lng + "," + lat);
-                                String json = "{\"authKey\":\"" + _authKey + "\",\"senderId\":\"" + _senderId + "\",\"request\":\"location\",\"lng\":\"" + lng + "\",\"lat\":\"" + lat + "\"}";
-                                _ws.send(json);
+                                _responseEntity.setRequestId("location");
+                                _responseEntity.setLng(location.getLongitude());
+                                _responseEntity.setLat(location.getLatitude());
+                                sendBroadcast("位置情報取得成功");
+                                _ws.send(JSON.encode(_responseEntity));
                             }
                         }
                     }
@@ -238,18 +240,18 @@ public class ConnectionService extends Service {
 
         _ws.connect();
     }
-    
+
     private void startAuth() {
         String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         AuthManager manager = new AuthManager(udid, AppConstants.SECURITY_SALT);
         _authKey = manager.generateAuthKey();
-        
+
         HttpEntity entity = new HttpEntity();
         entity.setUrl(AppConstants.AUTH_URL);
         Map<String, String> params = new HashMap<String, String>();
         params.put("authKey", _authKey);
         entity.setParams(params);
-        
+
         AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
             @Override
             public void deliverResult(Integer statusCode) {

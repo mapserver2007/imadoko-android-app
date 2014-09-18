@@ -38,15 +38,15 @@ import com.imadoko.app.AppConstants;
  * <pre>
  * http://terurou.hateblo.jp/entry/20110702/1309541200
  * </pre>
- * @author mapserver2007
- * @since 2014/09/06 
+ * @author Ryuichi Tanaka
+ * @since 2014/09/06
  */
 public class HttpClient {
     /** ステータスコード */
     private int _statusCode;
     /** レスポンス */
     private String _responseBody;
-    
+
     /**
      * GETを実行する
      * @param url URL
@@ -58,7 +58,7 @@ public class HttpClient {
         request(httpGet);
         return this;
     }
-    
+
     /**
      * GETを実行する
      * @param url URL
@@ -70,13 +70,13 @@ public class HttpClient {
         for (Map.Entry<String, String> param : params.entrySet()) {
             builder.appendQueryParameter(param.getKey(), param.getValue());
         }
-        
+
         HttpGet httpGet = new HttpGet(builder.build().toString());
         request(httpGet);
-        
+
         return this;
     }
-    
+
     /**
      * POSTを実行する
      * @param url URL
@@ -90,17 +90,17 @@ public class HttpClient {
         for (Map.Entry<String, String> param : params.entrySet()) {
             postParams.add(new BasicNameValuePair(param.getKey(), param.getValue()));
         }
-        
+
         try {
             httpPost.setEntity(new UrlEncodedFormEntity(postParams));
             request(httpPost);
         } catch (UnsupportedEncodingException e) {
             Log.e(AppConstants.TAG_HTTP, e.getMessage());
         }
-        
+
         return this;
     }
-    
+
     /**
      * ステータスコードを返却する
      * @return ステータスコード
@@ -108,7 +108,7 @@ public class HttpClient {
     public int getStatusCode() {
         return _statusCode;
     }
-    
+
     /**
      * レスポンスを返却する
      * @return レスポンス
@@ -116,7 +116,7 @@ public class HttpClient {
     public String getResponseBody() {
         return _responseBody;
     }
-    
+
     /**
      * レスポンスを返却する
      * @param request リクエストオブジェクト
@@ -127,7 +127,7 @@ public class HttpClient {
             // HTTPスキーマ設定
             SchemeRegistry scheme = new SchemeRegistry();
             scheme.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-            
+
             // タイムアウト設定
             HttpParams httpParams = new BasicHttpParams();
             HttpConnectionParams.setSocketBufferSize(httpParams, 4096);
@@ -135,7 +135,7 @@ public class HttpClient {
             HttpConnectionParams.setConnectionTimeout(httpParams, 5000);
             HttpProtocolParams.setContentCharset(httpParams, "UTF-8");
             HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
-            
+
             ThreadSafeClientConnManager connManager = new ThreadSafeClientConnManager(httpParams, scheme);
             httpClient = new DefaultHttpClient(connManager, httpParams);
             _responseBody = httpClient.execute(request, createResponse());
@@ -156,7 +156,7 @@ public class HttpClient {
             }
         }
     }
-    
+
     /**
      * ResponseHandlerオブジェクトを返却する
      * @return ResponseHandlerオブジェクト
