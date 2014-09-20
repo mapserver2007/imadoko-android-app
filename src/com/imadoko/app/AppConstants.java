@@ -30,6 +30,8 @@ public class AppConstants {
     public static final String SECURITY_SALT = "1xd5pEBShVey9LFz3rMVHHdrRkKbLAuNuun9fS7x";
 
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
-    public static final long TIMER_INTERVAL = 10000;
-    public static final long RECONNECT_INTERVAL = 100000;
+    public static final int TIMER_INTERVAL = 10000;
+    public static final int FAST_RECCONECT_MAX_NUM = 10;
+    public static final int RECOONECT_FAST_INTRERVAL = 5000;
+    public static final int RECONNECT_INTERVAL = 100000;
 }

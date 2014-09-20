@@ -123,6 +123,7 @@ public class HttpClient {
      */
     private void request(HttpRequestBase request) {
         DefaultHttpClient httpClient = null;
+        String errorMessage = null;
         try {
             // HTTPスキーマ設定
             SchemeRegistry scheme = new SchemeRegistry();
@@ -141,18 +142,24 @@ public class HttpClient {
             _responseBody = httpClient.execute(request, createResponse());
         } catch (IllegalStateException e) { // Target host must not be null, or set in parameters
             _statusCode = HttpStatus.SC_NOT_FOUND;
-            Log.d(AppConstants.TAG_HTTP, e.getMessage());
+            errorMessage = e.getMessage();
         } catch (ClientProtocolException e) {
             _statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-            Log.d(AppConstants.TAG_HTTP, e.getMessage());
+            errorMessage = e.getMessage();
         } catch (IOException e) {
             _statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-            Log.d(AppConstants.TAG_HTTP, e.getMessage());
+            errorMessage = e.getMessage();
         } catch (Throwable e) { // ステータスコードが200以外
-            Log.d(AppConstants.TAG_HTTP, e.getMessage());
+            errorMessage = e.getMessage();
         } finally {
             if (httpClient != null) {
                 httpClient.getConnectionManager().shutdown();
+            }
+            if (errorMessage != null) {
+                // 稀にLogオブジェクトの取得に失敗する現象を確認したのでエラー処理を追加する
+                try {
+                    Log.d(AppConstants.TAG_HTTP, errorMessage);
+                } catch (RuntimeException ignore) {}
             }
         }
     }

@@ -4,11 +4,9 @@ public class WebSocketResponseEntity extends WebSocketEntity {
 
     private String _senderId;
 
-    private String _userId;
+    private String _lng;
 
-    private double _lng;
-
-    private double _lat;
+    private String _lat;
 
     public String getSenderId() {
         return _senderId;
@@ -18,27 +16,19 @@ public class WebSocketResponseEntity extends WebSocketEntity {
         _senderId = senderId;
     }
 
-    public String getUserId() {
-        return _userId;
-    }
-
-    public void setUserId(String userId) {
-        _userId = userId;
-    }
-
-    public double getLng() {
+    public String getLng() {
         return _lng;
     }
 
-    public void setLng(double lng) {
+    public void setLng(String lng) {
         _lng = lng;
     }
 
-    public double getLat() {
+    public String getLat() {
         return _lat;
     }
 
-    public void setLat(double lat) {
+    public void setLat(String lat) {
         _lat = lat;
     }
 }
