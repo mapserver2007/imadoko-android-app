@@ -1,10 +1,9 @@
-package com.imadoko.async;
+package com.imadoko.network;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;
 
 import com.imadoko.entity.HttpEntity;
-import com.imadoko.network.HttpClient;
 
 /**
  * HttpRequest用AsyncTaskLoaderクラス
