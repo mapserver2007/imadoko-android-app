@@ -3,6 +3,7 @@ package com.imadoko.service;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -13,20 +14,16 @@ import org.apache.http.HttpStatus;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
-import org.java_websocket.exceptions.WebsocketNotConnectedException;
+import org.java_websocket.framing.Framedata;
+import org.java_websocket.framing.Framedata.Opcode;
+import org.java_websocket.framing.FramedataImpl1;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.app.Service;
 import android.content.Intent;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
@@ -35,31 +32,31 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
-
 import com.imadoko.app.AppConstants;
-import com.imadoko.async.AsyncHttpTaskLoader;
 import com.imadoko.entity.HttpEntity;
-import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.entity.WebSocketResponseEntity;
 import com.imadoko.model.AuthManager;
+import com.imadoko.network.AsyncHttpTaskLoader;
 
 public class ConnectionService extends Service {
 
     public static final String ACTION = "ServiceAction";
     private WebSocketClient _ws;
-    private Timer _timer;
     private String _authKey;
     private LocationRequest _locationRequest;
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
     private WebSocketResponseEntity _responseEntity;
+    private LinkedList<Long> _heartbeatPool;
+    private Timer _heartbeatTimer;
     private int _recconectCount;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(AppConstants.TAG_SERVICE, "Service start");
+        _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
     }
 
@@ -70,9 +67,6 @@ public class ConnectionService extends Service {
             _locationClient.disconnect();
         }
         Log.d(AppConstants.TAG_SERVICE, "Service end");
-        if (_timer != null) {
-            _timer.cancel();
-        }
     }
 
     @Override
@@ -97,7 +91,7 @@ public class ConnectionService extends Service {
         _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         /**
-         * 接続時・切断時のコールバック.
+         * 接続時・切断時のコールバック
          */
         _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
             @Override
@@ -111,7 +105,7 @@ public class ConnectionService extends Service {
         };
 
         /**
-         * 接続失敗時のコールバック.
+         * 接続失敗時のコールバック
          */
         _onConnectionFailedListener = new GooglePlayServicesClient.OnConnectionFailedListener() {
             @Override
@@ -171,18 +165,33 @@ public class ConnectionService extends Service {
                         sendBroadcast("WebSocket開始");
                     }
                 });
-                startPollingRequest();
+
+                // HeartBaat処理
+                _heartbeatTimer = new Timer();
+                _heartbeatTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (_heartbeatPool.size() > 2) {
+                            _heartbeatTimer.cancel();
+                            close();
+                            sendBroadcast("無通信状態検出により切断");
+                            return;
+                        }
+                        _heartbeatPool.add(System.currentTimeMillis());
+                        FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
+                        frame.setFin(true);
+                        _ws.getConnection().sendFrame(frame);
+                        sendBroadcast("ping送信");
+                    }
+                }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
             }
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
                 Log.d(AppConstants.TAG_WEBSOCKET, reason);
+                _heartbeatTimer.cancel();
                 sendBroadcast("WebSocket終了");
-
-                if (_timer != null) {
-                    _timer.cancel();
-                }
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -198,8 +207,7 @@ public class ConnectionService extends Service {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onError");
                 Log.d(AppConstants.TAG_WEBSOCKET, e.getMessage());
                 sendBroadcast("WebSocketエラー");
-                _ws.close();
-                _ws = null;
+                close();
             }
 
             @Override
@@ -221,43 +229,23 @@ public class ConnectionService extends Service {
                                 _responseEntity.setLat(String.valueOf(location.getLatitude()));
                                 sendBroadcast("位置情報取得成功");
                                 String json = JSON.encode(_responseEntity);
-                                _ws.send(json);
+                                send(json);
+                            } else {
+                                sendBroadcast("位置情報取得失敗");
                             }
                         }
                     }
                 });
             }
+
+            @Override
+            public void onWebsocketPing(WebSocket conn, Framedata f) {
+                _heartbeatPool.remove();
+                sendBroadcast("ping受信");
+            }
         };
 
         _ws.connect();
-    }
-
-    /**
-     * リクエストポーリングを開始する
-     */
-    private void startPollingRequest() {
-        final WebSocketEntity pollingEntity = new WebSocketEntity();
-        pollingEntity.setAuthKey(_authKey);
-        pollingEntity.setRequestId("polling_from_android");
-
-        _timer = new Timer();
-        _timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    if (_ws.getReadyState() == WebSocket.READYSTATE.OPEN) {
-                        _ws.send(JSON.encode(pollingEntity));
-                    } else {
-                        _timer.cancel();
-                        _timer = null;
-                    }
-                } catch (WebsocketNotConnectedException e) {
-                    Log.d(AppConstants.TAG_WEBSOCKET, e.getMessage());
-                    _timer.cancel();
-                    _timer = null;
-                }
-            }
-        }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
     }
 
     /**
