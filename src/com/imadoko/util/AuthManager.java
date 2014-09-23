@@ -1,9 +1,12 @@
-package com.imadoko.model;
+package com.imadoko.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
 import org.apache.commons.codec.binary.Hex;
+
 import android.util.Log;
+
 import com.imadoko.app.AppConstants;
 
 /**

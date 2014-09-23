@@ -2,7 +2,9 @@
 <resources>
 
     <string name="app_name">imadoko</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
+    <string name="connectoin_icon">connection icon</string>
+    <string name="stop_button">停止</string>
+    <string name="restart_button">再接続</string>
+    
 </resources>

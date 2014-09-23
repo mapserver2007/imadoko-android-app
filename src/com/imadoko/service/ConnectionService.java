@@ -35,8 +35,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.imadoko.app.AppConstants;
 import com.imadoko.entity.HttpEntity;
 import com.imadoko.entity.WebSocketResponseEntity;
-import com.imadoko.model.AuthManager;
 import com.imadoko.network.AsyncHttpTaskLoader;
+import com.imadoko.util.AuthManager;
 
 public class ConnectionService extends Service {
 
@@ -63,6 +63,12 @@ public class ConnectionService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // TODO
+        // UIからの停止でサーバのconnectionがゾンビ化しているのでこのタイミングでサーバに切断情報を送る必要あり
+        // _ws.close()では不可
+        _ws.close(); // ダメ実装
+
         if (_locationClient != null) {
             _locationClient.disconnect();
         }
@@ -124,10 +130,9 @@ public class ConnectionService extends Service {
      */
     private void onAuthResult(int statusCode) {
         if (statusCode == HttpStatus.SC_OK) {
-            sendBroadcast(AppConstants.AUTH_OK);
             createWebSocketConnection();
         } else {
-            sendBroadcast(AppConstants.AUTH_NG);
+            sendBroadcast(AppConstants.CONNECTION.AUTH_NG);
             return;
         }
     }
@@ -147,12 +152,15 @@ public class ConnectionService extends Service {
         try {
             uri = new URI(AppConstants.WEBSOCKET_SERVER_URI);
         } catch (URISyntaxException e) {
-            sendBroadcast(AppConstants.EXCEPTION);
+            sendBroadcast(AppConstants.CONNECTION.DISCONNECT);
             return;
         }
 
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(AppConstants.WEBSOCKET_AUTHKEY_HEADER, _authKey);
+
+        // TODO
+        // オフラインだった場合の処理。画像は常にdisconnectにする。
 
         _ws = new WebSocketClient(uri, new Draft_17(), headers, 0) {
             @Override
@@ -162,7 +170,7 @@ public class ConnectionService extends Service {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        sendBroadcast("WebSocket開始");
+                        sendBroadcast(AppConstants.CONNECTION.CONNECTED);
                     }
                 });
 
@@ -172,16 +180,13 @@ public class ConnectionService extends Service {
                     @Override
                     public void run() {
                         if (_heartbeatPool.size() > 2) {
-                            _heartbeatTimer.cancel();
                             close();
-                            sendBroadcast("無通信状態検出により切断");
                             return;
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
                         FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
                         frame.setFin(true);
                         _ws.getConnection().sendFrame(frame);
-                        sendBroadcast("ping送信");
                     }
                 }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
             }
@@ -190,13 +195,14 @@ public class ConnectionService extends Service {
             public void onClose(int code, String reason, boolean remote) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
                 Log.d(AppConstants.TAG_WEBSOCKET, reason);
+                _heartbeatPool = new LinkedList<Long>();
                 _heartbeatTimer.cancel();
-                sendBroadcast("WebSocket終了");
+                sendBroadcast(AppConstants.CONNECTION.DISCONNECT);
 
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        sendBroadcast("WebSocket再接続");
+                        sendBroadcast(AppConstants.CONNECTION.RECONNECT);
                         createWebSocketConnection();
                     }
                 }, _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL : AppConstants.RECOONECT_FAST_INTRERVAL);
@@ -206,7 +212,6 @@ public class ConnectionService extends Service {
             public void onError(Exception e) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onError");
                 Log.d(AppConstants.TAG_WEBSOCKET, e.getMessage());
-                sendBroadcast("WebSocketエラー");
                 close();
             }
 
@@ -227,11 +232,11 @@ public class ConnectionService extends Service {
                                 _responseEntity.setRequestId("send_request_browser");
                                 _responseEntity.setLng(String.valueOf(location.getLongitude()));
                                 _responseEntity.setLat(String.valueOf(location.getLatitude()));
-                                sendBroadcast("位置情報取得成功");
+                                sendBroadcast(AppConstants.CONNECTION.LOCATION_OK);
                                 String json = JSON.encode(_responseEntity);
                                 send(json);
                             } else {
-                                sendBroadcast("位置情報取得失敗");
+                                sendBroadcast(AppConstants.CONNECTION.LOCATION_NG);
                             }
                         }
                     }
@@ -241,7 +246,7 @@ public class ConnectionService extends Service {
             @Override
             public void onWebsocketPing(WebSocket conn, Framedata f) {
                 _heartbeatPool.remove();
-                sendBroadcast("ping受信");
+                sendBroadcast(AppConstants.CONNECTION.CONNECTING);
             }
         };
 
@@ -272,12 +277,12 @@ public class ConnectionService extends Service {
     }
 
     /**
-     * Activityへメッセージ送信
-     * @param message
+     * Activityへステータスを送信
+     * @param status 接続ステータス
      */
-    private void sendBroadcast(String message) {
+    private void sendBroadcast(AppConstants.CONNECTION status) {
         Intent sendIntent = new Intent(ACTION);
-        sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, message);
+        sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
         sendBroadcast(sendIntent);
     }
 }
