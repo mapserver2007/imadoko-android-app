@@ -63,14 +63,14 @@ public class ConnectionService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        // TODO
-        // UIからの停止でサーバのconnectionがゾンビ化しているのでこのタイミングでサーバに切断情報を送る必要あり
-        // _ws.close()では不可
-        _ws.close(); // ダメ実装
-
+        if (_ws != null) {
+            _ws.close();
+        }
         if (_locationClient != null) {
             _locationClient.disconnect();
+        }
+        if (_heartbeatTimer != null) {
+            _heartbeatTimer.cancel();
         }
         Log.d(AppConstants.TAG_SERVICE, "Service end");
     }
@@ -162,7 +162,10 @@ public class ConnectionService extends Service {
         // TODO
         // オフラインだった場合の処理。画像は常にdisconnectにする。
 
-        _ws = new WebSocketClient(uri, new Draft_17(), headers, 0) {
+        // FIXME
+        // 再接続を連打すると、複数のサービスが動いてしまうというクソバグが…。コネクションゾンビとかそういう問題じゃない。分裂してやがる…。
+
+        _ws = new WebSocketClient(uri, new Draft_17(), headers, 3000) {
             @Override
             public void onOpen(ServerHandshake handShake) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onOpen");

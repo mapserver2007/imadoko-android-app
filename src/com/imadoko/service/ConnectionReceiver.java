@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.imadoko.app.AppConstants;
+import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
 
 public class ConnectionReceiver extends BroadcastReceiver {
@@ -15,22 +16,32 @@ public class ConnectionReceiver extends BroadcastReceiver {
 
         MainActivity activity = (MainActivity) context;
         Bundle bundle = intent.getExtras();
-        AppConstants.CONNECTION status = (AppConstants.CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
+        CONNECTION status = (AppConstants.CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
 
-        if (AppConstants.CONNECTION.AUTH_NG == status) {
+        switch (status) {
+        case AUTH_NG:
             activity.onConnectionError("認証失敗");
-        } else if (AppConstants.CONNECTION.DISCONNECT == status) {
+            break;
+        case DISCONNECT:
             activity.onConnectionError("WebSocket切断");
-        } else if (AppConstants.CONNECTION.CONNECTED == status) {
+            break;
+        case CONNECTED:
             activity.onConnected("WebSocket開始");
-        } else if (AppConstants.CONNECTION.RECONNECT == status) {
+            break;
+        case RECONNECT:
             activity.onConnectionError("WebSocket再接続");
-        } else if (AppConstants.CONNECTION.CONNECTING == status) {
-            activity.onConnected("WebSocket接続確立");
-        } else if (AppConstants.CONNECTION.LOCATION_OK == status) {
+            break;
+        case CONNECTING:
+            activity.onConnected("WebSocket接続中");
+            break;
+        case LOCATION_OK:
             activity.onConnected("位置情報取得成功");
-        } else if (AppConstants.CONNECTION.LOCATION_NG == status) {
+            break;
+        case LOCATION_NG:
             activity.onConnected("位置情報取得失敗");
+            break;
+        default:
+            break;
         }
     }
 }

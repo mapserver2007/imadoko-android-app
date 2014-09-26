@@ -18,20 +18,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.service.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
-import com.navdrawer.SimpleSideDrawer;
 
 /**
  * アクティビティクラス
@@ -39,10 +35,8 @@ import com.navdrawer.SimpleSideDrawer;
  * @since 2014/09/06
  */
 public class MainActivity extends FragmentActivity {
-    private SimpleSideDrawer _sideDrawer;
-    private GestureDetector _gestureDetector;
-    private ConnectionReceiver _receiver;
 
+    private ConnectionReceiver _receiver;
     private TextView _connectionStatus;
     private ImageView _connectionImage;
     private Drawable _connectedImage;
@@ -74,12 +68,9 @@ public class MainActivity extends FragmentActivity {
         };
 
         // ボタン
-        findViewById(R.id.restart_button).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isServiceRunning(view.getContext(), ConnectionService.class)) {
-                    stopService("アプリケーション停止");
-                }
                 startService("アプリケーション起動");
             }
         });
@@ -91,68 +82,98 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        // サイドメニュー
-        // TODO クリックイベントもdispatchEventしてしまうため解決方法がわからん
-        // そもそもフリックによるメニュー表示っていらん？
-//        _sideDrawer = new SimpleSideDrawer(this);
-//        _sideDrawer.setLeftBehindContentView(R.layout.activity_behind_left_simple);
-//        _gestureDetector = new GestureDetector(this, getGestureListener());
-
-
         startService("アプリケーション起動");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopService(new Intent(this, ConnectionService.class));
+        stopService("アプリケーション停止");
         unregisterReceiver(_receiver);
         endConnectingImage();
     }
 
-//    @Override
-//    public boolean dispatchTouchEvent(MotionEvent event) {
-//        return _gestureDetector.onTouchEvent(event);
-//    }
-
     public void onConnected(String message) {
         connectSuccessImage();
+        changeButton(CONNECTION.CONNECTED);
         _connectionStatus.setText(message);
     }
 
     public void onConnectionError(String message) {
+        stopService(message);
         connectFailureImage();
+        changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
     }
 
     public void onConnecting(String message) {
         startConnectingImage();
+        changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
     }
 
+    private void changeButton(CONNECTION status) {
+        Button startButton = (Button) findViewById(R.id.start_button);
+        Button stopButton = (Button) findViewById(R.id.stop_button);
+
+        Log.d(AppConstants.TAG_APPLICATION, String.valueOf(status));
+
+        switch (status) {
+        case CONNECTING:
+            startButton.setEnabled(false);
+            startButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            stopButton.setEnabled(false);
+            stopButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            break;
+        case CONNECTED:
+            startButton.setEnabled(false);
+            startButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            stopButton.setEnabled(true);
+            stopButton.setBackgroundColor(Color.rgb(255, 140, 0));
+            break;
+        case DISCONNECT:
+            startButton.setEnabled(true);
+            startButton.setBackgroundColor(Color.rgb(255, 140, 0));
+            stopButton.setEnabled(false);
+            stopButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            break;
+        default:
+            break;
+        }
+    }
+
     public void startService(String message) {
-        IntentFilter filter = new IntentFilter();
-        _receiver = new ConnectionReceiver();
-        filter.addAction(ConnectionService.ACTION);
-        registerReceiver(_receiver, filter);
-        startService(new Intent(this, ConnectionService.class));
-        onConnecting(message);
-        Button button = (Button) findViewById(R.id.stop_button);
-        button.setEnabled(true);
-        button.setBackgroundColor(Color.rgb(255, 140, 0));
-        Log.d(AppConstants.TAG_APPLICATION, message);
+        if (!isServiceRunning(this, ConnectionService.class)) {
+            IntentFilter filter = new IntentFilter();
+            _receiver = new ConnectionReceiver();
+            filter.addAction(ConnectionService.ACTION);
+            registerReceiver(_receiver, filter);
+            startService(new Intent(this, ConnectionService.class));
+            onConnecting(message);
+            Log.d(AppConstants.TAG_APPLICATION, message);
+        }
     }
 
     public void stopService(String message) {
-        stopService(new Intent(this, ConnectionService.class));
-        unregisterReceiver(_receiver);
-        onConnectionError(message);
-        endConnectingImage();
-        Button button = (Button) findViewById(R.id.stop_button);
-        button.setEnabled(false);
-        button.setBackgroundColor(Color.rgb(105, 105, 105));
-        Log.d(AppConstants.TAG_APPLICATION, message);
+        if (isServiceRunning(this, ConnectionService.class)) {
+            stopService(new Intent(this, ConnectionService.class));
+            unregisterReceiver(_receiver);
+            onConnectionError(message);
+            endConnectingImage();
+            Log.d(AppConstants.TAG_APPLICATION, message);
+        }
     }
+
+//    public void stopService(Class<?> cls) {
+//        ActivityManager am = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
+//        List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
+//        for (RunningServiceInfo info : runningService) {
+//            Log.d(AppConstants.TAG_APPLICATION, info.service.getClassName());
+//            if (cls.getName().equals(info.service.getClassName())) {
+//                stopService(new Intent(this, cls));
+//            }
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -236,45 +257,11 @@ public class MainActivity extends FragmentActivity {
     public boolean isServiceRunning(Context context, Class<?> cls) {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
-        for (RunningServiceInfo i : runningService) {
-            if (cls.getName().equals(i.service.getClassName())) {
+        for (RunningServiceInfo info : runningService) {
+            if (cls.getName().equals(info.service.getClassName())) {
                 return true;
             }
         }
         return false;
     }
-
-//    /**
-//     * ジェスチャーリスナを返却する
-//     * @return ジェスチャーリスナオブジェクト
-//     */
-//    private SimpleOnGestureListener getGestureListener() {
-//        return new SimpleOnGestureListener() {
-//            private boolean isSideMenuOpend = false;
-//
-//            @Override
-//            public boolean onFling(MotionEvent event1, MotionEvent event2, float velocityX, float velocityY) {
-//                Log.v(AppConstants.TAG_APPLICATION, "onFling");
-//                try {
-//                    if (Math.abs(event1.getY() - event2.getY()) > AppConstants.SWIPE_MAX_OFF_PATH) {
-//                        return false;
-//                    }
-//                    if (event1.getX() - event2.getX() > AppConstants.SWIPE_MIN_DISTANCE && Math.abs(velocityX) > AppConstants.SWIPE_THRESHOLD_VELOCITY) {
-//                        if (isSideMenuOpend) {
-//                            _sideDrawer.toggleLeftDrawer();
-//                            isSideMenuOpend = false;
-//                        }
-//                    } else if (event2.getX() - event1.getX() > AppConstants.SWIPE_MIN_DISTANCE && Math.abs(velocityX) > AppConstants.SWIPE_THRESHOLD_VELOCITY) {
-//                        if (!isSideMenuOpend) {
-//                            _sideDrawer.toggleLeftDrawer();
-//                            isSideMenuOpend = true;
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    Log.d(AppConstants.TAG_APPLICATION, e.getMessage());
-//                }
-//                return false;
-//            }
-//        };
-//    }
 }
