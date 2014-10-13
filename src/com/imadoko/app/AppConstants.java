@@ -18,6 +18,7 @@ public class AppConstants {
     public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
 //    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
+    public static final int SERVICE_CLOSE_CODE = 9999;
     public static final int TIMER_INTERVAL = 15000;
     public static final int FAST_RECCONECT_MAX_NUM = 10;
     public static final int RECOONECT_FAST_INTRERVAL = 5000;

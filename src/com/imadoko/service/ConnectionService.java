@@ -64,13 +64,15 @@ public class ConnectionService extends Service {
     public void onDestroy() {
         super.onDestroy();
         if (_ws != null) {
-            _ws.close();
+            _ws.getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
+            _ws = null;
         }
         if (_locationClient != null) {
             _locationClient.disconnect();
         }
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
+            _heartbeatTimer = null;
         }
         Log.d(AppConstants.TAG_SERVICE, "Service end");
     }
@@ -104,6 +106,7 @@ public class ConnectionService extends Service {
             public void onConnected(Bundle bundle) {
                 Log.d(AppConstants.TAG_LOCATION, "location on connected");
             }
+
             @Override
             public void onDisconnected() {
                 Log.d(AppConstants.TAG_LOCATION, "location on disconnected");
@@ -120,13 +123,16 @@ public class ConnectionService extends Service {
             }
         };
 
-        _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
+        _locationClient = new LocationClient(this, _connectionCallbacks,
+                _onConnectionFailedListener);
         _locationClient.connect();
     }
 
     /**
      * 認証処理後のコールバック
-     * @param statusCode ステータスコード
+     *
+     * @param statusCode
+     *            ステータスコード
      */
     private void onAuthResult(int statusCode) {
         if (statusCode == HttpStatus.SC_OK) {
@@ -162,9 +168,6 @@ public class ConnectionService extends Service {
         // TODO
         // オフラインだった場合の処理。画像は常にdisconnectにする。
 
-        // FIXME
-        // 再接続を連打すると、複数のサービスが動いてしまうというクソバグが…。コネクションゾンビとかそういう問題じゃない。分裂してやがる…。
-
         _ws = new WebSocketClient(uri, new Draft_17(), headers, 3000) {
             @Override
             public void onOpen(ServerHandshake handShake) {
@@ -183,7 +186,7 @@ public class ConnectionService extends Service {
                     @Override
                     public void run() {
                         if (_heartbeatPool.size() > 2) {
-                            close();
+                            getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
                             return;
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
@@ -197,32 +200,38 @@ public class ConnectionService extends Service {
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
-                Log.d(AppConstants.TAG_WEBSOCKET, reason);
-                _heartbeatPool = new LinkedList<Long>();
                 _heartbeatTimer.cancel();
                 sendBroadcast(AppConstants.CONNECTION.DISCONNECT);
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendBroadcast(AppConstants.CONNECTION.RECONNECT);
-                        createWebSocketConnection();
-                    }
-                }, _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL : AppConstants.RECOONECT_FAST_INTRERVAL);
+                if (code != AppConstants.SERVICE_CLOSE_CODE) {
+                    _heartbeatPool = new LinkedList<Long>();
+                    handler.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                sendBroadcast(AppConstants.CONNECTION.RECONNECT);
+                                createWebSocketConnection();
+                            }
+                        },
+                        _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL
+                                : AppConstants.RECOONECT_FAST_INTRERVAL);
+                } else {
+                    Log.d(AppConstants.TAG_WEBSOCKET, "websocket heartbeat end");
+                }
             }
 
             @Override
             public void onError(Exception e) {
-                Log.d(AppConstants.TAG_WEBSOCKET, "onError");
-                Log.d(AppConstants.TAG_WEBSOCKET, e.getMessage());
-                close();
+                getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
             }
 
             @Override
             public void onMessage(final String jsonStr) {
-                _responseEntity = JSON.decode(jsonStr, WebSocketResponseEntity.class);
+                _responseEntity = JSON.decode(jsonStr,
+                        WebSocketResponseEntity.class);
                 if (!_authKey.equals(_responseEntity.getAuthKey())) {
-                    Log.d(AppConstants.TAG_WEBSOCKET, "auth error at getLocation");
+                    Log.d(AppConstants.TAG_WEBSOCKET,
+                            "auth error at getLocation");
                     return;
                 }
 
@@ -230,11 +239,15 @@ public class ConnectionService extends Service {
                     @Override
                     public void run() {
                         if (_locationClient.isConnected()) {
-                            Location location = _locationClient.getLastLocation();
+                            Location location = _locationClient
+                                    .getLastLocation();
                             if (location != null) {
-                                _responseEntity.setRequestId("send_request_browser");
-                                _responseEntity.setLng(String.valueOf(location.getLongitude()));
-                                _responseEntity.setLat(String.valueOf(location.getLatitude()));
+                                _responseEntity
+                                        .setRequestId("send_request_browser");
+                                _responseEntity.setLng(String.valueOf(location
+                                        .getLongitude()));
+                                _responseEntity.setLat(String.valueOf(location
+                                        .getLatitude()));
                                 sendBroadcast(AppConstants.CONNECTION.LOCATION_OK);
                                 String json = JSON.encode(_responseEntity);
                                 send(json);
@@ -260,7 +273,8 @@ public class ConnectionService extends Service {
      * 認証処理を実行
      */
     private void startAuth() {
-        String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        String udid = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ANDROID_ID);
         AuthManager manager = new AuthManager(udid, AppConstants.SECURITY_SALT);
         _authKey = manager.generateAuthKey();
 
@@ -281,7 +295,8 @@ public class ConnectionService extends Service {
 
     /**
      * Activityへステータスを送信
-     * @param status 接続ステータス
+     * @param status
+     * 接続ステータス
      */
     private void sendBroadcast(AppConstants.CONNECTION status) {
         Intent sendIntent = new Intent(ACTION);
