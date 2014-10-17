@@ -5,13 +5,15 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="15"
-        android:targetSdkVersion="15" />
+        android:minSdkVersion="16"
+        android:targetSdkVersion="16" />
     
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <application
@@ -30,7 +32,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+        <activity
+            android:name=".AlertDialogActivity"
+            android:theme="@style/Translucent"
+            android:launchMode="singleInstance">
+        </activity>
         <service android:name="com.imadoko.service.ConnectionService" />
     </application>
 
