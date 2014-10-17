@@ -45,7 +45,6 @@ public class ConnectionReceiver extends BroadcastReceiver {
             break;
         case CONNECTING:
             activity.onConnected(status.toString());
-            activity.showDebugLog(status.toString());
             break;
         case LOCATION_OK:
             activity.onConnected(status.toString());

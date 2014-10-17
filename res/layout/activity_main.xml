@@ -65,7 +65,7 @@
         android:layout_alignParentTop="true"
         android:gravity="left"
         android:textColor="#fff"
-        android:maxLines="3"
+        android:maxLines="@string/debug_log_line"
         android:textSize="12sp" />
 
 </RelativeLayout>

@@ -14,10 +14,10 @@ public class AppConstants {
     public static final int DEBUG_LOG_MAX_SIZE = 7;
 
     /** WebSocket系 */
-    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
-//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
-    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
-//    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
+//    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
+    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
+//    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
+    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final int SERVICE_CLOSE_CODE = 9999;
     public static final int TIMER_INTERVAL = 15000;

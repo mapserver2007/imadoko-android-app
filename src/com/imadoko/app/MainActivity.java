@@ -78,6 +78,7 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 startService(AppConstants.CONNECTION.APPLICATION_START.toString());
+                showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
             }
         });
 
@@ -85,10 +86,12 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 stopService(AppConstants.CONNECTION.APPLICATION_STOP.toString());
+                showDebugLog(AppConstants.CONNECTION.APPLICATION_STOP.toString());
             }
         });
 
         startService(AppConstants.CONNECTION.APPLICATION_START.toString());
+        showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
     }
 
     @Override
