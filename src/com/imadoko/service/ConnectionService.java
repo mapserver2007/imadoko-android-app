@@ -72,7 +72,6 @@ public class ConnectionService extends Service {
         }
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
-            _heartbeatTimer = null;
         }
         Log.d(AppConstants.TAG_SERVICE, "Service end");
     }
@@ -130,9 +129,7 @@ public class ConnectionService extends Service {
 
     /**
      * 認証処理後のコールバック
-     *
-     * @param statusCode
-     *            ステータスコード
+     * @param statusCode ステータスコード
      */
     private void onAuthResult(int statusCode) {
         if (statusCode == HttpStatus.SC_OK) {
