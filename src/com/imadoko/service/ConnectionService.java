@@ -19,13 +19,18 @@ import org.java_websocket.framing.Framedata.Opcode;
 import org.java_websocket.framing.FramedataImpl1;
 import org.java_websocket.handshake.ServerHandshake;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -33,6 +38,8 @@ import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 import com.imadoko.app.AppConstants;
+import com.imadoko.app.AppConstants.CONNECTION;
+import com.imadoko.app.R;
 import com.imadoko.entity.HttpEntity;
 import com.imadoko.entity.WebSocketResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
@@ -51,6 +58,15 @@ public class ConnectionService extends Service {
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
     private int _recconectCount;
+    private NotificationCompat.Builder _notify;
+    private NotificationManager _manager;
+
+    private final IBinder _localBinder = new LocalBinder();
+    public class LocalBinder extends Binder {
+        public ConnectionService getService() {
+            return ConnectionService.this;
+        }
+    }
 
     @Override
     public void onCreate() {
@@ -58,11 +74,14 @@ public class ConnectionService extends Service {
         Log.d(AppConstants.TAG_SERVICE, "Service start");
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
+        createNotification();
+        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
             _ws = null;
@@ -78,7 +97,7 @@ public class ConnectionService extends Service {
 
     @Override
     public IBinder onBind(Intent arg0) {
-        return null;
+        return _localBinder;
     }
 
     @Override
@@ -127,17 +146,37 @@ public class ConnectionService extends Service {
         _locationClient.connect();
     }
 
+    private void createNotification() {
+        _notify = new NotificationCompat.Builder(this)
+            .setPriority(Notification.PRIORITY_HIGH)
+            .setContentTitle("imadoko")
+            .setContentText("hoge")
+            .setTicker("hoge")
+            .setSmallIcon(R.drawable.ic_statusbar)
+            .setOngoing(true);
+
+        _manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+
     /**
      * 認証処理後のコールバック
      * @param statusCode ステータスコード
      */
     private void onAuthResult(int statusCode) {
         if (statusCode == HttpStatus.SC_OK) {
+            createNotification();
             createWebSocketConnection();
         } else {
             sendBroadcast(AppConstants.CONNECTION.AUTH_NG);
             return;
         }
+    }
+
+    private void notification(String message) {
+        _manager.notify(1, _notify
+                .setContentText(message)
+                .setTicker(message)
+                .build());
     }
 
     /**
@@ -161,9 +200,6 @@ public class ConnectionService extends Service {
 
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(AppConstants.WEBSOCKET_AUTHKEY_HEADER, _authKey);
-
-        // TODO
-        // オフラインだった場合の処理。画像は常にdisconnectにする。
 
         _ws = new WebSocketClient(uri, new Draft_17(), headers, 3000) {
             @Override
@@ -190,6 +226,7 @@ public class ConnectionService extends Service {
                         FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
                         frame.setFin(true);
                         _ws.getConnection().sendFrame(frame);
+                        sendBroadcast(AppConstants.CONNECTION.SEND_PING, false);
                     }
                 }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
             }
@@ -259,7 +296,7 @@ public class ConnectionService extends Service {
             @Override
             public void onWebsocketPing(WebSocket conn, Framedata f) {
                 _heartbeatPool.remove();
-                sendBroadcast(AppConstants.CONNECTION.CONNECTING);
+                sendBroadcast(AppConstants.CONNECTION.RECEIVE_PONG, false);
             }
         };
 
@@ -299,5 +336,18 @@ public class ConnectionService extends Service {
         Intent sendIntent = new Intent(ACTION);
         sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
         sendBroadcast(sendIntent);
+    }
+
+    /**
+     * Activityへステータスを送信
+     * @param status
+     * @param 通知を有効にするかどうか
+     * 接続ステータス
+     */
+    private void sendBroadcast(AppConstants.CONNECTION status, boolean enableNotification) {
+        if (enableNotification) {
+            notification(status.toString());
+        }
+        sendBroadcast(status);
     }
 }

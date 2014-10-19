@@ -18,6 +18,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
         MainActivity activity = (MainActivity) context;
         Bundle bundle = intent.getExtras();
         CONNECTION status = (AppConstants.CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
+        activity.showDebugLog(status.toString());
 
         Intent dialogIntent = new Intent(context, AlertDialogActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, dialogIntent, 0);
@@ -27,8 +28,6 @@ public class ConnectionReceiver extends BroadcastReceiver {
             }
         } catch (PendingIntent.CanceledException ignore) {
         }
-
-        activity.showDebugLog(status.toString());
 
         switch (status) {
         case AUTH_NG:
@@ -41,7 +40,14 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.onConnected(status.toString());
             break;
         case RECONNECT:
-            activity.onConnectionError(status.toString());
+            activity.onReConnect(status.toString());
+            break;
+        case SEND_PING:
+            // ログは更新するが画面上のステータスは更新しない
+            break;
+        case RECEIVE_PONG:
+            // 画面上のステータスは接続確立
+            activity.onConnected(AppConstants.CONNECTION.CONNECTING.toString());
             break;
         case CONNECTING:
             activity.onConnected(status.toString());

@@ -1,23 +1,27 @@
 package com.imadoko.app;
 
 import java.lang.ref.WeakReference;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -48,7 +52,25 @@ public class MainActivity extends FragmentActivity {
     private Drawable[] _connectingImages;
     private int _drawableIndex;
     private Timer _connectingTimer;
-    private LinkedList<String> _debugLogList;
+    private Queue<String> _debugLogQueue;
+
+//    private ConnectionService _service; // TODO ActivityからServiceのメソッドを叩くときに使う
+//    private ServiceConnection _serviceConnection = new ServiceConnection() {
+//        @Override
+//        public void onServiceConnected(ComponentName className, IBinder service) {
+//            _service = ((ConnectionService.LocalBinder) service).getService();
+////            IntentFilter filter = new IntentFilter();
+////            _receiver = new ConnectionReceiver();
+////            filter.addAction(ConnectionService.ACTION);
+////            _service.registerReceiver(_receiver, filter);
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName className) {
+//            unbindService(_serviceConnection);
+//            _service = null;
+//        }
+//    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,7 +80,7 @@ public class MainActivity extends FragmentActivity {
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
         _debugLog = (TextView) findViewById(R.id.debug_log);
-        _debugLogList = new LinkedList<String>();
+        _debugLogQueue = new ConcurrentLinkedQueue<String>();
         Resources res = this.getResources();
         _connectedImage = res.getDrawable(R.drawable.connected);
         _disconnectImage = res.getDrawable(R.drawable.disconnect);
@@ -77,36 +99,56 @@ public class MainActivity extends FragmentActivity {
         findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startService(AppConstants.CONNECTION.APPLICATION_START.toString());
-                showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
+                showDebugLog(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
+                startService(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
             }
         });
 
         findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stopService(AppConstants.CONNECTION.APPLICATION_STOP.toString());
                 showDebugLog(AppConstants.CONNECTION.APPLICATION_STOP.toString());
+                stopService(AppConstants.CONNECTION.APPLICATION_STOP.toString()); // 一貫性がない
             }
         });
 
-        startService(AppConstants.CONNECTION.APPLICATION_START.toString());
-        showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
+        startService(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
+        showDebugLog(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopService(AppConstants.CONNECTION.APPLICATION_STOP.toString());
-        unregisterReceiver(_receiver);
+        stopService(AppConstants.CONNECTION.APPLICATION_DESTROY.toString());
         endConnectingImage();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
+
+        if (!isServiceRunning(this, ConnectionService.class)) {
+            showDebugLog("サービス死んでる");
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        showDebugLog(AppConstants.CONNECTION.APPLICATION_STOP.toString());
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        showDebugLog(AppConstants.CONNECTION.APPLICATION_RESUME.toString());
     }
 
     public void onConnected(String message) {
         connectSuccessImage();
         changeButton(CONNECTION.CONNECTED);
         _connectionStatus.setText(message);
-        showStatusBar(message);
     }
 
     public void onConnectionError(String message) {
@@ -114,14 +156,16 @@ public class MainActivity extends FragmentActivity {
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
-        showStatusBar(message);
+    }
+
+    public void onReConnect(String message) {
+        onConnectionError(message);
     }
 
     public void onConnecting(String message) {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
-        showStatusBar(message);
     }
 
     private void changeButton(CONNECTION status) {
@@ -176,25 +220,13 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private void showStatusBar(String message) {
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
-        Notification.Builder nb = new Notification.Builder(this)
-            .setPriority(Notification.PRIORITY_HIGH)
-            .setContentTitle("imadoko")
-            .setContentText(message)
-            .setTicker(message)
-            .setSmallIcon(R.drawable.ic_statusbar)
-            .setOngoing(true);
-        notificationManager.notify(0, nb.build());
-    }
-
     public void showDebugLog(String message) {
         String datetime = String.valueOf(DateFormat.format("yyyy/MM/dd kk:mm:ss", System.currentTimeMillis()));
-        if (_debugLogList.size() > AppConstants.DEBUG_LOG_MAX_SIZE) {
-            _debugLogList.poll();
+        if (_debugLogQueue.size() >= AppConstants.DEBUG_LOG_MAX_SIZE) {
+            _debugLogQueue.poll();
         }
-        _debugLogList.add(datetime + ": " + message);
-        _debugLog.setText(TextUtils.join("\n", _debugLogList));
+        _debugLogQueue.add(datetime + ": " + message);
+        _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
     }
 
     public Drawable[] getConnectionImages() {

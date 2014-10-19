@@ -14,10 +14,10 @@ public class AppConstants {
     public static final int DEBUG_LOG_MAX_SIZE = 7;
 
     /** WebSocket系 */
-//    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
-    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
-//    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
-    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
+    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
+//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
+    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
+//    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final int SERVICE_CLOSE_CODE = 9999;
     public static final int TIMER_INTERVAL = 15000;
@@ -48,13 +48,19 @@ public class AppConstants {
 
     /** 接続状態 */
     public enum CONNECTION {
-        APPLICATION_START("アプリケーション起動"),
+        APPLICATION_CREATE("アプリケーション起動"),
+        APPLICATION_DESTROY("アプリケーション終了"),
+        APPLICATION_PAUSE("アプリケーション一時停止"),
+        APPLICATION_START("アプリケーション開始"),
         APPLICATION_STOP("アプリケーション停止"),
+        APPLICATION_RESUME("アプリケーション再開"),
         CONNECTED("接続開始"),
         CONNECTING("接続確立"),
         DISCONNECT("接続切断"),
         RECONNECT("再接続開始"),
         SILENT_CLOSE("無通信切断"),
+        SEND_PING("ping送信"),
+        RECEIVE_PONG("ping受信"),
         AUTH_NG("認証失敗"),
         LOCATION_OK("位置情報返却成功"),
         LOCATION_NG("位置情報取得失敗");

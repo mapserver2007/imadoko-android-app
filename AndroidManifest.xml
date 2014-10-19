@@ -37,7 +37,9 @@
             android:theme="@style/Translucent"
             android:launchMode="singleInstance">
         </activity>
-        <service android:name="com.imadoko.service.ConnectionService" />
+        <service
+            android:name="com.imadoko.service.ConnectionService"
+            android:exported="false" />
     </application>
 
 </manifest>
