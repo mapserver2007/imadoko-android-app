@@ -53,7 +53,6 @@ public class AppConstants {
         APPLICATION_PAUSE("アプリケーション一時停止"),
         APPLICATION_START("アプリケーション開始"),
         APPLICATION_STOP("アプリケーション停止"),
-        APPLICATION_RESUME("アプリケーション再開"),
         CONNECTED("接続開始"),
         CONNECTING("接続確立"),
         DISCONNECT("接続切断"),
@@ -61,9 +60,11 @@ public class AppConstants {
         SILENT_CLOSE("無通信切断"),
         SEND_PING("ping送信"),
         RECEIVE_PONG("ping受信"),
+        RESTART("サービス再起動"),
         AUTH_NG("認証失敗"),
         LOCATION_OK("位置情報返却成功"),
-        LOCATION_NG("位置情報取得失敗");
+        LOCATION_NG("位置情報取得失敗"),
+        SERVICE_DEAD("想定外のサービス停止");
 
         private String status;
 

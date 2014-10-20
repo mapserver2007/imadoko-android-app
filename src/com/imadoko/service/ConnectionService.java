@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,13 +20,15 @@ import org.java_websocket.framing.Framedata.Opcode;
 import org.java_websocket.framing.FramedataImpl1;
 import org.java_websocket.handshake.ServerHandshake;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -37,6 +40,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
+import com.imadoko.app.AlertDialogActivity;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.R;
@@ -60,13 +64,6 @@ public class ConnectionService extends Service {
     private int _recconectCount;
     private NotificationCompat.Builder _notify;
     private NotificationManager _manager;
-
-    private final IBinder _localBinder = new LocalBinder();
-    public class LocalBinder extends Binder {
-        public ConnectionService getService() {
-            return ConnectionService.this;
-        }
-    }
 
     @Override
     public void onCreate() {
@@ -97,7 +94,7 @@ public class ConnectionService extends Service {
 
     @Override
     public IBinder onBind(Intent arg0) {
-        return _localBinder;
+        return null;
     }
 
     @Override
@@ -167,7 +164,7 @@ public class ConnectionService extends Service {
             createNotification();
             createWebSocketConnection();
         } else {
-            sendBroadcast(AppConstants.CONNECTION.AUTH_NG);
+            sendBroadcast(CONNECTION.AUTH_NG);
             return;
         }
     }
@@ -194,7 +191,7 @@ public class ConnectionService extends Service {
         try {
             uri = new URI(AppConstants.WEBSOCKET_SERVER_URI);
         } catch (URISyntaxException e) {
-            sendBroadcast(AppConstants.CONNECTION.DISCONNECT);
+            sendBroadcast(CONNECTION.DISCONNECT);
             return;
         }
 
@@ -209,7 +206,7 @@ public class ConnectionService extends Service {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        sendBroadcast(AppConstants.CONNECTION.CONNECTED);
+                        sendBroadcast(CONNECTION.CONNECTED);
                     }
                 });
 
@@ -226,7 +223,7 @@ public class ConnectionService extends Service {
                         FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
                         frame.setFin(true);
                         _ws.getConnection().sendFrame(frame);
-                        sendBroadcast(AppConstants.CONNECTION.SEND_PING, false);
+                        sendBroadcast(CONNECTION.SEND_PING, false);
                     }
                 }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
             }
@@ -235,22 +232,23 @@ public class ConnectionService extends Service {
             public void onClose(int code, String reason, boolean remote) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
                 _heartbeatTimer.cancel();
-                sendBroadcast(AppConstants.CONNECTION.DISCONNECT);
 
-                if (code != AppConstants.SERVICE_CLOSE_CODE) {
-                    _heartbeatPool = new LinkedList<Long>();
-                    handler.postDelayed(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                sendBroadcast(AppConstants.CONNECTION.RECONNECT);
-                                createWebSocketConnection();
-                            }
-                        },
-                        _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL
-                                : AppConstants.RECOONECT_FAST_INTRERVAL);
-                } else {
-                    Log.d(AppConstants.TAG_WEBSOCKET, "websocket heartbeat end");
+                if (isServiceRunning(ConnectionService.class)) {
+                    if (code != AppConstants.SERVICE_CLOSE_CODE) {
+                        _heartbeatPool = new LinkedList<Long>();
+                        handler.postDelayed(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendBroadcast(CONNECTION.RECONNECT);
+                                    createWebSocketConnection();
+                                }
+                            },
+                            _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL
+                                    : AppConstants.RECOONECT_FAST_INTRERVAL);
+                    } else {
+                        sendBroadcast(CONNECTION.DISCONNECT);
+                    }
                 }
             }
 
@@ -282,11 +280,11 @@ public class ConnectionService extends Service {
                                         .getLongitude()));
                                 _responseEntity.setLat(String.valueOf(location
                                         .getLatitude()));
-                                sendBroadcast(AppConstants.CONNECTION.LOCATION_OK);
+                                sendBroadcast(CONNECTION.LOCATION_OK);
                                 String json = JSON.encode(_responseEntity);
                                 send(json);
                             } else {
-                                sendBroadcast(AppConstants.CONNECTION.LOCATION_NG);
+                                sendBroadcast(CONNECTION.LOCATION_NG);
                             }
                         }
                     }
@@ -296,7 +294,7 @@ public class ConnectionService extends Service {
             @Override
             public void onWebsocketPing(WebSocket conn, Framedata f) {
                 _heartbeatPool.remove();
-                sendBroadcast(AppConstants.CONNECTION.RECEIVE_PONG, false);
+                sendBroadcast(CONNECTION.RECEIVE_PONG, false);
             }
         };
 
@@ -329,10 +327,10 @@ public class ConnectionService extends Service {
 
     /**
      * Activityへステータスを送信
-     * @param status
-     * 接続ステータス
+     * @param status 接続ステータス
+     *
      */
-    private void sendBroadcast(AppConstants.CONNECTION status) {
+    private void sendBroadcast(CONNECTION status) {
         Intent sendIntent = new Intent(ACTION);
         sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
         sendBroadcast(sendIntent);
@@ -340,14 +338,29 @@ public class ConnectionService extends Service {
 
     /**
      * Activityへステータスを送信
-     * @param status
+     * @param status 接続ステータス
      * @param 通知を有効にするかどうか
-     * 接続ステータス
      */
-    private void sendBroadcast(AppConstants.CONNECTION status, boolean enableNotification) {
+    private void sendBroadcast(CONNECTION status, boolean enableNotification) {
         if (enableNotification) {
             notification(status.toString());
         }
         sendBroadcast(status);
+    }
+
+    /**
+     * プロセスが生存しているか
+     * @param cls クラスオブジェクト
+     * @return
+     */
+    private boolean isServiceRunning(Class<?> cls) {
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        List<RunningServiceInfo> runningService = activityManager.getRunningServices(Integer.MAX_VALUE);
+        for (RunningServiceInfo info : runningService) {
+            if (cls.getName().equals(info.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

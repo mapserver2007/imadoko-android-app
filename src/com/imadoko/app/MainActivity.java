@@ -8,20 +8,16 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -54,24 +50,6 @@ public class MainActivity extends FragmentActivity {
     private Timer _connectingTimer;
     private Queue<String> _debugLogQueue;
 
-//    private ConnectionService _service; // TODO ActivityからServiceのメソッドを叩くときに使う
-//    private ServiceConnection _serviceConnection = new ServiceConnection() {
-//        @Override
-//        public void onServiceConnected(ComponentName className, IBinder service) {
-//            _service = ((ConnectionService.LocalBinder) service).getService();
-////            IntentFilter filter = new IntentFilter();
-////            _receiver = new ConnectionReceiver();
-////            filter.addAction(ConnectionService.ACTION);
-////            _service.registerReceiver(_receiver, filter);
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName className) {
-//            unbindService(_serviceConnection);
-//            _service = null;
-//        }
-//    };
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,50 +77,44 @@ public class MainActivity extends FragmentActivity {
         findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showDebugLog(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
-                startService(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
+                showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
+                startService(CONNECTION.APPLICATION_CREATE.toString());
             }
         });
 
         findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showDebugLog(AppConstants.CONNECTION.APPLICATION_STOP.toString());
-                stopService(AppConstants.CONNECTION.APPLICATION_STOP.toString()); // 一貫性がない
+                showDebugLog(CONNECTION.APPLICATION_STOP.toString());
+                stopService(CONNECTION.APPLICATION_STOP.toString());
             }
         });
 
-        startService(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
-        showDebugLog(AppConstants.CONNECTION.APPLICATION_CREATE.toString());
+        startService(CONNECTION.APPLICATION_CREATE.toString());
+        showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopService(AppConstants.CONNECTION.APPLICATION_DESTROY.toString());
+        stopService(CONNECTION.APPLICATION_DESTROY.toString());
         endConnectingImage();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        showDebugLog(AppConstants.CONNECTION.APPLICATION_START.toString());
+        showDebugLog(CONNECTION.APPLICATION_START.toString());
 
         if (!isServiceRunning(this, ConnectionService.class)) {
-            showDebugLog("サービス死んでる");
+            showDebugLog(CONNECTION.SERVICE_DEAD.toString());
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        showDebugLog(AppConstants.CONNECTION.APPLICATION_STOP.toString());
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        showDebugLog(AppConstants.CONNECTION.APPLICATION_RESUME.toString());
+        showDebugLog(CONNECTION.APPLICATION_STOP.toString());
     }
 
     public void onConnected(String message) {
@@ -159,13 +131,19 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onReConnect(String message) {
-        onConnectionError(message);
+        connectFailureImage();
+        changeButton(CONNECTION.CONNECTING);
+        _connectionStatus.setText(message);
     }
 
     public void onConnecting(String message) {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
+    }
+
+    public void onReStart(String message) {
+        showDebugLog(message);
     }
 
     private void changeButton(CONNECTION status) {
@@ -289,9 +267,15 @@ public class MainActivity extends FragmentActivity {
         getConnectionImageView().setImageDrawable(_disconnectImage);
     }
 
-    public boolean isServiceRunning(Context context, Class<?> cls) {
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
+    /**
+     * プロセスが生存しているか
+     * @param context コンテキスト
+     * @param cls クラスオブジェクト
+     * @return
+     */
+    private boolean isServiceRunning(Context context, Class<?> cls) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<RunningServiceInfo> runningService = activityManager.getRunningServices(Integer.MAX_VALUE);
         for (RunningServiceInfo info : runningService) {
             if (cls.getName().equals(info.service.getClassName())) {
                 return true;
