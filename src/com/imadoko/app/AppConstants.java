@@ -56,6 +56,7 @@ public class AppConstants {
         CONNECTED("接続開始"),
         CONNECTING("接続確立"),
         DISCONNECT("接続切断"),
+        RECONNECTING("再接続中"),
         RECONNECT("再接続開始"),
         SILENT_CLOSE("無通信切断"),
         SEND_PING("ping送信"),

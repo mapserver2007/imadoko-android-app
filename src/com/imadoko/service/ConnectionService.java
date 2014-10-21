@@ -24,7 +24,6 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -40,7 +39,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
-import com.imadoko.app.AlertDialogActivity;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.R;
@@ -147,8 +145,7 @@ public class ConnectionService extends Service {
         _notify = new NotificationCompat.Builder(this)
             .setPriority(Notification.PRIORITY_HIGH)
             .setContentTitle("imadoko")
-            .setContentText("hoge")
-            .setTicker("hoge")
+            .setContentText("タップしてアプリケーションを表示する")
             .setSmallIcon(R.drawable.ic_statusbar)
             .setOngoing(true);
 
@@ -240,15 +237,19 @@ public class ConnectionService extends Service {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    sendBroadcast(CONNECTION.RECONNECT);
+                                    sendBroadcast(CONNECTION.RECONNECTING);
                                     createWebSocketConnection();
                                 }
                             },
                             _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL
                                     : AppConstants.RECOONECT_FAST_INTRERVAL);
                     } else {
+                        // サーバからの接続が切断された場合
                         sendBroadcast(CONNECTION.DISCONNECT);
                     }
+                } else {
+                    // サービスが死んだ時
+                    sendBroadcast(CONNECTION.RECONNECT);
                 }
             }
 

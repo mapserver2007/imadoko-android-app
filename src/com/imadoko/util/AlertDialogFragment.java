@@ -4,32 +4,44 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.ContextThemeWrapper;
 
-import com.imadoko.app.AlertDialogActivity;
+import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
 
 public class AlertDialogFragment extends DialogFragment {
+
+    private Dialog _dialog;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // TODO ここでSerivieを停止したい
-
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.ErrorDialogTheme));
-        Dialog dialog = builder
+        _dialog = builder
             .setMessage("imadokoサーバとの接続が切断されました。")
-            .setPositiveButton("再接続", new DialogInterface.OnClickListener() {
+            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    // TODO ここからServiceを起動したい
+                    dialog.dismiss();
+                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                    startActivity(intent);
                 }
             })
             .setNegativeButton("キャンセル", null)
             .create();
-        dialog.setCanceledOnTouchOutside(true);
+        _dialog.setCanceledOnTouchOutside(true);
 
-        return dialog;
+        return _dialog;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (_dialog != null && _dialog.isShowing()) {
+            _dialog.dismiss();
+        }
     }
 
     @Override

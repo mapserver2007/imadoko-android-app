@@ -105,9 +105,9 @@ public class MainActivity extends FragmentActivity {
     public void onStart() {
         super.onStart();
         showDebugLog(CONNECTION.APPLICATION_START.toString());
-
         if (!isServiceRunning(this, ConnectionService.class)) {
             showDebugLog(CONNECTION.SERVICE_DEAD.toString());
+            startService(CONNECTION.RECONNECT.toString());
         }
     }
 
@@ -125,12 +125,18 @@ public class MainActivity extends FragmentActivity {
 
     public void onConnectionError(String message) {
         stopService(message);
+        showDialog(message);
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
     }
 
     public void onReConnect(String message) {
+        onReConnecting(message);
+        startService(message);
+    }
+
+    public void onReConnecting(String message) {
         connectFailureImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
@@ -140,10 +146,6 @@ public class MainActivity extends FragmentActivity {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
-    }
-
-    public void onReStart(String message) {
-        showDebugLog(message);
     }
 
     private void changeButton(CONNECTION status) {
@@ -195,6 +197,15 @@ public class MainActivity extends FragmentActivity {
             onConnectionError(message);
             endConnectingImage();
             Log.d(AppConstants.TAG_APPLICATION, message);
+        }
+    }
+
+    private void showDialog(String message) {
+        Intent dialogIntent = new Intent(this, AlertDialogActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, dialogIntent, 0);
+        try {
+            pendingIntent.send();
+        } catch (PendingIntent.CanceledException ignore) {
         }
     }
 

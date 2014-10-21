@@ -1,12 +1,10 @@
 package com.imadoko.service;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.imadoko.app.AlertDialogActivity;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
@@ -17,17 +15,8 @@ public class ConnectionReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         MainActivity activity = (MainActivity) context;
         Bundle bundle = intent.getExtras();
-        CONNECTION status = (AppConstants.CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
+        CONNECTION status = (CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
         activity.showDebugLog(status.toString());
-
-        Intent dialogIntent = new Intent(context, AlertDialogActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, dialogIntent, 0);
-        try {
-            if (status == AppConstants.CONNECTION.DISCONNECT) {
-                pendingIntent.send();
-            }
-        } catch (PendingIntent.CanceledException ignore) {
-        }
 
         switch (status) {
         case AUTH_NG:
@@ -40,7 +29,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.onConnected(status.toString());
             break;
         case RECONNECT:
-            activity.onReConnect(status.toString());
+            activity.onReConnecting(status.toString());
             break;
         case SEND_PING:
             // ログは更新するが画面上のステータスは更新しない
