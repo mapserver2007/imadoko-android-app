@@ -124,8 +124,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onConnectionError(String message) {
-        stopService(message);
-        showDialog(message);
+        if (stopService(message)) {
+            showDialog(message);
+        }
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
@@ -157,47 +158,59 @@ public class MainActivity extends FragmentActivity {
         switch (status) {
         case CONNECTING:
             startButton.setEnabled(false);
-            startButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            startButton.setBackgroundColor(Color.rgb(60, 61, 61));
             stopButton.setEnabled(false);
-            stopButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            stopButton.setBackgroundColor(Color.rgb(60, 61, 61));
             break;
         case CONNECTED:
             startButton.setEnabled(false);
-            startButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            startButton.setBackgroundColor(Color.rgb(60, 61, 61));
             stopButton.setEnabled(true);
-            stopButton.setBackgroundColor(Color.rgb(255, 140, 0));
+            stopButton.setBackgroundColor(Color.rgb(255, 168, 34));
             break;
         case DISCONNECT:
             startButton.setEnabled(true);
-            startButton.setBackgroundColor(Color.rgb(255, 140, 0));
+            startButton.setBackgroundColor(Color.rgb(255, 168, 34));
             stopButton.setEnabled(false);
-            stopButton.setBackgroundColor(Color.rgb(105, 105, 105));
+            stopButton.setBackgroundColor(Color.rgb(60, 61, 61));
             break;
         default:
             break;
         }
     }
 
-    public void startService(String message) {
+    public boolean startService(String message) {
+        if (_receiver == null) {
+            _receiver = new ConnectionReceiver();
+        }
+
         if (!isServiceRunning(this, ConnectionService.class)) {
             IntentFilter filter = new IntentFilter();
-            _receiver = new ConnectionReceiver();
             filter.addAction(ConnectionService.ACTION);
             registerReceiver(_receiver, filter);
             startService(new Intent(this, ConnectionService.class));
             onConnecting(message);
             Log.d(AppConstants.TAG_APPLICATION, message);
+
+            return true;
         }
+
+        return false;
     }
 
-    public void stopService(String message) {
+    public boolean stopService(String message) {
         if (isServiceRunning(this, ConnectionService.class)) {
             stopService(new Intent(this, ConnectionService.class));
             unregisterReceiver(_receiver);
+            _receiver = null;
             onConnectionError(message);
             endConnectingImage();
             Log.d(AppConstants.TAG_APPLICATION, message);
+
+            return true;
         }
+
+        return false;
     }
 
     private void showDialog(String message) {

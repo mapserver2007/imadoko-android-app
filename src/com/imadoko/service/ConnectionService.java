@@ -24,6 +24,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +42,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
+import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
 import com.imadoko.entity.HttpEntity;
 import com.imadoko.entity.WebSocketResponseEntity;
@@ -142,11 +144,14 @@ public class ConnectionService extends Service {
     }
 
     private void createNotification() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         _notify = new NotificationCompat.Builder(this)
             .setPriority(Notification.PRIORITY_HIGH)
             .setContentTitle("imadoko")
             .setContentText("タップしてアプリケーションを表示する")
             .setSmallIcon(R.drawable.ic_statusbar)
+            .setContentIntent(contentIntent)
             .setOngoing(true);
 
         _manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
