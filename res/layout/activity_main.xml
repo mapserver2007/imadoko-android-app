@@ -68,4 +68,14 @@
         android:maxLines="@string/debug_log_line"
         android:textSize="12sp" />
 
+    <ImageButton
+        android:id="@+id/settings_button"
+        android:contentDescription="@+id/settings_buttion_description"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignRight="@+id/debug_log"
+        android:layout_alignTop="@+id/debug_log"
+        android:background="@null"
+        android:src="@drawable/ic_settings" />
+
 </RelativeLayout>

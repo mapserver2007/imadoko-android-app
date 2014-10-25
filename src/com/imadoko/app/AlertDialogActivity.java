@@ -10,6 +10,6 @@ public class AlertDialogActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AlertDialogFragment fragment = new AlertDialogFragment();
-        fragment.show(getSupportFragmentManager(), "alert_dialog");
+        fragment.show(getSupportFragmentManager(), AppConstants.DIALOG_ALERT);
     }
 }

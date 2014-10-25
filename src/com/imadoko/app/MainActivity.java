@@ -1,15 +1,19 @@
 package com.imadoko.app;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.http.HttpStatus;
+
 import android.app.ActivityManager;
-import android.app.PendingIntent;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -23,17 +27,24 @@ import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.imadoko.app.AppConstants.CONNECTION;
+import com.imadoko.entity.HttpEntity;
+import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.service.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
+import com.imadoko.util.SettingsDialogFragment;
 
 /**
  * アクティビティクラス
+ *
  * @author Ryuichi Tanaka
  * @since 2014/09/06
  */
@@ -49,11 +60,16 @@ public class MainActivity extends FragmentActivity {
     private int _drawableIndex;
     private Timer _connectingTimer;
     private Queue<String> _debugLogQueue;
+    private String _authKey;
+    private String _userName;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = getIntent();
+        _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
 
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
@@ -63,35 +79,50 @@ public class MainActivity extends FragmentActivity {
         _connectedImage = res.getDrawable(R.drawable.connected);
         _disconnectImage = res.getDrawable(R.drawable.disconnect);
         _connectingImages = new Drawable[] {
-            res.getDrawable(R.drawable.connecting1),
-            res.getDrawable(R.drawable.connecting2),
-            res.getDrawable(R.drawable.connecting3),
-            res.getDrawable(R.drawable.connecting4),
-            res.getDrawable(R.drawable.connecting5),
-            res.getDrawable(R.drawable.connecting6),
-            res.getDrawable(R.drawable.connecting7),
-            res.getDrawable(R.drawable.connecting8)
-        };
+                res.getDrawable(R.drawable.connecting1),
+                res.getDrawable(R.drawable.connecting2),
+                res.getDrawable(R.drawable.connecting3),
+                res.getDrawable(R.drawable.connecting4),
+                res.getDrawable(R.drawable.connecting5),
+                res.getDrawable(R.drawable.connecting6),
+                res.getDrawable(R.drawable.connecting7),
+                res.getDrawable(R.drawable.connecting8) };
 
         // ボタン
-        findViewById(R.id.start_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
-                startService(CONNECTION.APPLICATION_CREATE.toString());
-            }
-        });
+        findViewById(R.id.start_button).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
+                        startService(CONNECTION.APPLICATION_CREATE.toString());
+                    }
+                });
 
-        findViewById(R.id.stop_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDebugLog(CONNECTION.APPLICATION_STOP.toString());
-                stopService(CONNECTION.APPLICATION_STOP.toString());
-            }
-        });
+        findViewById(R.id.stop_button).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        showDebugLog(CONNECTION.APPLICATION_STOP.toString());
+                        stopService(CONNECTION.APPLICATION_STOP.toString());
+                    }
+                });
 
         startService(CONNECTION.APPLICATION_CREATE.toString());
         showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
+        setButtonEvent();
+    }
+
+    private void setButtonEvent() {
+        final LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        findViewById(R.id.settings_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SettingsDialogFragment dialog = new SettingsDialogFragment();
+                View layout = inflater.inflate(R.layout.dialog_username, (ViewGroup) findViewById(R.id.dialog_edittext));
+                dialog.setLayout(layout);
+                dialog.show(getFragmentManager(), AppConstants.DIALOG_SETTINGS);
+            }
+        });
     }
 
     @Override
@@ -180,15 +211,18 @@ public class MainActivity extends FragmentActivity {
     }
 
     public boolean startService(String message) {
-        if (_receiver == null) {
-            _receiver = new ConnectionReceiver();
+        if (_receiver != null) {
+            unregisterReceiver(_receiver);
         }
+        _receiver = new ConnectionReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectionService.ACTION);
+        registerReceiver(_receiver, filter);
 
         if (!isServiceRunning(this, ConnectionService.class)) {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(ConnectionService.ACTION);
-            registerReceiver(_receiver, filter);
-            startService(new Intent(this, ConnectionService.class));
+            Intent intent = new Intent(this, ConnectionService.class);
+            intent.putExtra(AppConstants.PARAM_AUTH_KEY, _authKey);
+            startService(intent);
             onConnecting(message);
             Log.d(AppConstants.TAG_APPLICATION, message);
 
@@ -231,6 +265,38 @@ public class MainActivity extends FragmentActivity {
         _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
     }
 
+    public void onRegisterUserNameResult(int statusCode) {
+        if (statusCode == HttpStatus.SC_OK) {
+            showDebugLog(CONNECTION.USERNAME_REGISTER_OK.toString());
+            Toast.makeText(this, CONNECTION.USERNAME_REGISTER_OK.toString(), Toast.LENGTH_LONG).show();
+        } else {
+            showDebugLog(CONNECTION.USERNAME_REGISTER_NG.toString());
+            Toast.makeText(this, CONNECTION.USERNAME_REGISTER_NG.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String getUserName() {
+        return null;
+    }
+
+    public void registerUserName(String userName) {
+        _userName = userName;
+        HttpEntity entity = new HttpEntity();
+        entity.setUrl(AppConstants.REGISTER_USERNAME_URL);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+        params.put(AppConstants.PARAM_USERNAME, _userName);
+        entity.setParams(params);
+
+        AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
+            @Override
+            public void deliverResult(Integer statusCode) {
+                onRegisterUserNameResult(statusCode);
+            }
+        };
+        loader.forceLoad();
+    }
+
     public Drawable[] getConnectionImages() {
         return _connectingImages;
     }
@@ -248,10 +314,11 @@ public class MainActivity extends FragmentActivity {
         }
 
         @Override
-        public void handleMessage(Message msg){
+        public void handleMessage(Message msg) {
             MainActivity activity = _activity.get();
             if (activity != null) {
-                activity.getConnectionImageView().setImageDrawable(activity.getConnectionImages()[msg.what]);
+                activity.getConnectionImageView().setImageDrawable(
+                        activity.getConnectionImages()[msg.what]);
             }
         }
     }

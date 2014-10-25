@@ -30,6 +30,6 @@ public class AsyncHttpTaskLoader extends AsyncTaskLoader<Integer> {
     @Override
     public Integer loadInBackground() {
         HttpClient client = new HttpClient();
-        return client.get(_entity.getUrl(), _entity.getParams()).getStatusCode();
+        return client.post(_entity.getUrl(), _entity.getParams()).getStatusCode();
     }
 }

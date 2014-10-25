@@ -11,7 +11,6 @@ import java.util.TimerTask;
 
 import net.arnx.jsonic.JSON;
 
-import org.apache.http.HttpStatus;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -32,7 +31,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -44,10 +42,7 @@ import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
-import com.imadoko.entity.HttpEntity;
 import com.imadoko.entity.WebSocketResponseEntity;
-import com.imadoko.network.AsyncHttpTaskLoader;
-import com.imadoko.util.AuthManager;
 
 public class ConnectionService extends Service {
 
@@ -100,7 +95,9 @@ public class ConnectionService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
-        startAuth();
+        _authKey = intent.getStringExtra("authKey");
+        createNotification();
+        createWebSocketConnection();
         return START_STICKY;
     }
 
@@ -155,20 +152,6 @@ public class ConnectionService extends Service {
             .setOngoing(true);
 
         _manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    }
-
-    /**
-     * 認証処理後のコールバック
-     * @param statusCode ステータスコード
-     */
-    private void onAuthResult(int statusCode) {
-        if (statusCode == HttpStatus.SC_OK) {
-            createNotification();
-            createWebSocketConnection();
-        } else {
-            sendBroadcast(CONNECTION.AUTH_NG);
-            return;
-        }
     }
 
     private void notification(String message) {
@@ -305,30 +288,6 @@ public class ConnectionService extends Service {
         };
 
         _ws.connect();
-    }
-
-    /**
-     * 認証処理を実行
-     */
-    private void startAuth() {
-        String udid = Settings.Secure.getString(getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        AuthManager manager = new AuthManager(udid, AppConstants.SECURITY_SALT);
-        _authKey = manager.generateAuthKey();
-
-        HttpEntity entity = new HttpEntity();
-        entity.setUrl(AppConstants.AUTH_URL);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("authKey", _authKey);
-        entity.setParams(params);
-
-        AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
-            @Override
-            public void deliverResult(Integer statusCode) {
-                onAuthResult(statusCode);
-            }
-        };
-        loader.forceLoad();
     }
 
     /**
