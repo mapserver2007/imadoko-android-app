@@ -7,7 +7,7 @@ import java.util.Map;
  * @author Ryuichi Tanaka
  * @since 2014/09/06
  */
-public class HttpEntity {
+public class HttpRequestEntity {
     /** リクエストURL */
     private String _url;
     /** リクエストパラメータ */

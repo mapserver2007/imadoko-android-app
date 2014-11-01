@@ -2,6 +2,7 @@ package com.imadoko.service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,16 +37,22 @@ import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationStatusCodes;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
 import com.imadoko.entity.WebSocketResponseEntity;
 
+/**
+ * ConnectionService
+ * @author Ryuichi Tanaka
+ * @since 2014/09/06
+ */
 public class ConnectionService extends Service {
-
     public static final String ACTION = "ServiceAction";
     private WebSocketClient _ws;
     private String _authKey;
@@ -53,6 +60,7 @@ public class ConnectionService extends Service {
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
+    private LocationClient.OnAddGeofencesResultListener _onAddGeofencesResultListener;
     private WebSocketResponseEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
@@ -117,6 +125,7 @@ public class ConnectionService extends Service {
             @Override
             public void onConnected(Bundle bundle) {
                 Log.d(AppConstants.TAG_LOCATION, "location on connected");
+                addGeofence();
             }
 
             @Override
@@ -135,9 +144,55 @@ public class ConnectionService extends Service {
             }
         };
 
-        _locationClient = new LocationClient(this, _connectionCallbacks,
-                _onConnectionFailedListener);
+        /**
+         * GeoFence登録後のコールバック
+         */
+        _onAddGeofencesResultListener = new LocationClient.OnAddGeofencesResultListener() {
+            @Override
+            public void onAddGeofencesResult(int statusCode, String[] geofenceRequestIdList) {
+                switch (statusCode) {
+                    case LocationStatusCodes.SUCCESS:
+                        break;
+                    case LocationStatusCodes.GEOFENCE_NOT_AVAILABLE:
+                    case LocationStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES:
+                    case LocationStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS:
+                    case LocationStatusCodes.ERROR:
+                        break;
+                    default:
+                        break;
+                }
+                Log.d(AppConstants.TAG_SERVICE, String.valueOf(statusCode));
+            }
+        };
+
+        _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
+    }
+
+    private void addGeofence() {
+        double lat = 35.755094;
+        double lng = 139.688843;
+        float radius = 200;
+
+        Geofence.Builder builder = new Geofence.Builder();
+        builder.setRequestId("imadoko_fence");
+        builder.setCircularRegion(lat, lng, radius);
+        builder.setExpirationDuration(Geofence.NEVER_EXPIRE);
+        builder.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+        builder.setLoiteringDelay(60 * 1000); //とりあえず
+
+        List<Geofence> geofences = new ArrayList<Geofence>();
+        geofences.add(builder.build());
+
+//        Intent intent = new Intent(ACTION);
+        Intent intent = new Intent(this, GeofenceService.class);
+        //intent.putExtra(AppConstants.SERIVCE_MESSAGE, AppConstants.CONNECTION.GEOFENCE_ON);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        _locationClient.addGeofences(geofences, pendingIntent, _onAddGeofencesResultListener);
+    }
+
+    private void removeGeofence() {
+        // TODO
     }
 
     private void createNotification() {
@@ -248,11 +303,9 @@ public class ConnectionService extends Service {
 
             @Override
             public void onMessage(final String jsonStr) {
-                _responseEntity = JSON.decode(jsonStr,
-                        WebSocketResponseEntity.class);
+                _responseEntity = JSON.decode(jsonStr, WebSocketResponseEntity.class);
                 if (!_authKey.equals(_responseEntity.getAuthKey())) {
-                    Log.d(AppConstants.TAG_WEBSOCKET,
-                            "auth error at getLocation");
+                    Log.d(AppConstants.TAG_WEBSOCKET, "auth error at getLocation");
                     return;
                 }
 
@@ -263,15 +316,11 @@ public class ConnectionService extends Service {
                             Location location = _locationClient
                                     .getLastLocation();
                             if (location != null) {
-                                _responseEntity
-                                        .setRequestId("send_request_browser");
-                                _responseEntity.setLng(String.valueOf(location
-                                        .getLongitude()));
-                                _responseEntity.setLat(String.valueOf(location
-                                        .getLatitude()));
+                                _responseEntity.setRequestId("send_request_browser");
+                                _responseEntity.setLng(String.valueOf(location.getLongitude()));
+                                _responseEntity.setLat(String.valueOf(location.getLatitude()));
                                 sendBroadcast(CONNECTION.LOCATION_OK);
-                                String json = JSON.encode(_responseEntity);
-                                send(json);
+                                send(JSON.encode(_responseEntity));
                             } else {
                                 sendBroadcast(CONNECTION.LOCATION_NG);
                             }
@@ -291,18 +340,17 @@ public class ConnectionService extends Service {
     }
 
     /**
-     * Activityへステータスを送信
+     * BroadcastReceiverへステータスを送信
      * @param status 接続ステータス
-     *
      */
     private void sendBroadcast(CONNECTION status) {
-        Intent sendIntent = new Intent(ACTION);
-        sendIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
-        sendBroadcast(sendIntent);
+        Intent intent = new Intent(ACTION);
+        intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
+        sendBroadcast(intent);
     }
 
     /**
-     * Activityへステータスを送信
+     * BroadcastReceiverへステータスを送信
      * @param status 接続ステータス
      * @param 通知を有効にするかどうか
      */
@@ -316,7 +364,7 @@ public class ConnectionService extends Service {
     /**
      * プロセスが生存しているか
      * @param cls クラスオブジェクト
-     * @return
+     * @return 生存結果
      */
     private boolean isServiceRunning(Class<?> cls) {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

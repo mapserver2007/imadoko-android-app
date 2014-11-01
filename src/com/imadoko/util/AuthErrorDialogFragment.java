@@ -23,7 +23,7 @@ public class AuthErrorDialogFragment extends DialogFragment {
             .setPositiveButton("閉じる", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    ((SplashActivity) getActivity()).onFinish();
+                    ((SplashActivity) getActivity()).finish();
                     dialog.dismiss();
                 }
             })

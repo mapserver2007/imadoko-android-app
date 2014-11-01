@@ -1,6 +1,7 @@
 package com.imadoko.app;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,15 +37,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.imadoko.app.AppConstants.CONNECTION;
-import com.imadoko.entity.HttpEntity;
+import com.imadoko.entity.GeofenceParcelable;
+import com.imadoko.entity.HttpRequestEntity;
+import com.imadoko.entity.HttpResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
-import com.imadoko.service.ConnectionReceiver;
+import com.imadoko.receiver.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
 import com.imadoko.util.SettingsDialogFragment;
 
 /**
- * アクティビティクラス
- *
+ * MainActivity
  * @author Ryuichi Tanaka
  * @since 2014/09/06
  */
@@ -61,6 +63,7 @@ public class MainActivity extends FragmentActivity {
     private Timer _connectingTimer;
     private Queue<String> _debugLogQueue;
     private String _authKey;
+    private ArrayList<GeofenceParcelable> _geofenceList;
     private String _userName;
 
     @Override
@@ -69,8 +72,10 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
+        Bundle bundle = intent.getExtras();
 
+        _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
+        _geofenceList = bundle.getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
         _debugLog = (TextView) findViewById(R.id.debug_log);
@@ -88,7 +93,6 @@ public class MainActivity extends FragmentActivity {
                 res.getDrawable(R.drawable.connecting7),
                 res.getDrawable(R.drawable.connecting8) };
 
-        // ボタン
         findViewById(R.id.start_button).setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -178,6 +182,14 @@ public class MainActivity extends FragmentActivity {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
+    }
+
+    public void onGeoFenceIn(String message) {
+        showDebugLog(message);
+    }
+
+    public void onGeoFenceOut(String message) {
+        showDebugLog(message);
     }
 
     private void changeButton(CONNECTION status) {
@@ -281,7 +293,7 @@ public class MainActivity extends FragmentActivity {
 
     public void registerUserName(String userName) {
         _userName = userName;
-        HttpEntity entity = new HttpEntity();
+        HttpRequestEntity entity = new HttpRequestEntity();
         entity.setUrl(AppConstants.REGISTER_USERNAME_URL);
         Map<String, String> params = new HashMap<String, String>();
         params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
@@ -290,11 +302,11 @@ public class MainActivity extends FragmentActivity {
 
         AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
             @Override
-            public void deliverResult(Integer statusCode) {
-                onRegisterUserNameResult(statusCode);
+            public void deliverResult(HttpResponseEntity response) {
+                onRegisterUserNameResult(response.getStatusCode());
             }
         };
-        loader.forceLoad();
+        loader.post();
     }
 
     public Drawable[] getConnectionImages() {

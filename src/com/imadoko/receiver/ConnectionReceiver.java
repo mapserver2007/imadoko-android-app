@@ -1,10 +1,12 @@
-package com.imadoko.service;
+package com.imadoko.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.LocationClient;
 import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
@@ -19,9 +21,6 @@ public class ConnectionReceiver extends BroadcastReceiver {
         activity.showDebugLog(status.toString());
 
         switch (status) {
-        case AUTH_NG:
-            activity.onConnectionError(status.toString());
-            break;
         case DISCONNECT:
             activity.onConnectionError(status.toString());
             break;
@@ -46,6 +45,11 @@ public class ConnectionReceiver extends BroadcastReceiver {
             break;
         case LOCATION_NG:
             activity.onConnected(status.toString());
+            break;
+        case GEOFENCE_ON:
+            int ttt = Geofence.GEOFENCE_TRANSITION_ENTER;
+            int transitionType = LocationClient.getGeofenceTransition(intent);
+//            activity.onConnected(status.toString());
             break;
         default:
             break;
