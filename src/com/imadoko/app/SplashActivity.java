@@ -38,7 +38,9 @@ public class SplashActivity extends FragmentActivity {
     }
 
     private void startMainActivity(ArrayList<GeofenceParcelable> geofenceList) {
+        int index = 0;
         for (GeofenceParcelable geofence : geofenceList) {
+            geofence.setRequestId(String.valueOf(++index));
             geofence.setLoiteringDelay(AppConstants.LOITERING_DELAY);
         }
 

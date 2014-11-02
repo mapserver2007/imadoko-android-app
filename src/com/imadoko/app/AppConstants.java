@@ -8,24 +8,28 @@ package com.imadoko.app;
 public class AppConstants {
     // 共通系
     public static final String SERIVCE_MESSAGE = "service_message";
+    public static final String GEOFENCE_REQUEST_ID = "geofenceRequestId";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
 
+    /** Action */
+    public static final String ACTION = "com.imadoko.app.MainActivity";
+
     /** WebSocket/REST系 */
-//    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
-//    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
-//    public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
-//    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
-    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
-    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
-    public static final String MASTER_GEOFENCE_URL = "http://192.168.0.30:9224/master/geofence";
-    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
+    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
+    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
+    public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
+    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
+//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
+//    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
+//    public static final String MASTER_GEOFENCE_URL = "http://192.168.0.30:9224/master/geofence";
+//    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final int SERVICE_CLOSE_CODE = 9999;
     public static final int TIMER_INTERVAL = 15000;
     public static final int FAST_RECCONECT_MAX_NUM = 10;
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
-    public static final long LOITERING_DELAY = 180000; // 3分
+    public static final int LOITERING_DELAY = 180000; // 3分
 
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";
@@ -76,9 +80,10 @@ public class AppConstants {
         RESTART("サービス再起動"),
         LOCATION_OK("位置情報返却成功"),
         LOCATION_NG("位置情報取得失敗"),
-        GEOFENCE_ON("ジオフェンス開始"),
-        GEOFENCE_IN("入"),
-        GEOFENCE_OUT("出"),
+        GEOFENCE_IN("周辺に進入"),
+        GEOFENCE_OUT("周辺を退出"),
+        GEOFENCE_STAY("に滞在開始"),
+        GEOFENCE_ERROR("ジオフェンスエラー"),
         SERVICE_DEAD("想定外のサービス停止"),
         USERNAME_REGISTER_OK("ユーザ名登録成功"),
         USERNAME_REGISTER_NG("ユーザ名登録失敗");

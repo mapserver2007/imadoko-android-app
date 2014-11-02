@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
+
 /**
  * HttpRequest用AsyncTaskLoaderクラス
  * @author Ryuichi Tanaka
@@ -59,8 +60,6 @@ public class AsyncHttpTaskLoader extends AsyncTaskLoader<HttpResponseEntity> {
         }
 
         return entity;
-
-//        return _client.post(_entity.getUrl(), _entity.getParams()).getStatusCode();
     }
 
     private enum METHOD {

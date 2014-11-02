@@ -45,6 +45,7 @@ import com.imadoko.app.AppConstants;
 import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
+import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketResponseEntity;
 
 /**
@@ -56,11 +57,13 @@ public class ConnectionService extends Service {
     public static final String ACTION = "ServiceAction";
     private WebSocketClient _ws;
     private String _authKey;
+    private ArrayList<GeofenceParcelable> _geofenceList;
     private LocationRequest _locationRequest;
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
     private LocationClient.OnAddGeofencesResultListener _onAddGeofencesResultListener;
+    private LocationClient.OnRemoveGeofencesResultListener _onRemoveGeofencesByRequestIdsResult;
     private WebSocketResponseEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
@@ -82,6 +85,7 @@ public class ConnectionService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopForeground(true);
+        removeGeofence();
         if (_ws != null) {
             _ws.getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
             _ws = null;
@@ -103,7 +107,8 @@ public class ConnectionService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
-        _authKey = intent.getStringExtra("authKey");
+        _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
+        _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         createNotification();
         createWebSocketConnection();
         return START_STICKY;
@@ -165,34 +170,59 @@ public class ConnectionService extends Service {
             }
         };
 
+        /**
+         * GeoFence解除後のコールバック
+         */
+        _onRemoveGeofencesByRequestIdsResult = new LocationClient.OnRemoveGeofencesResultListener() {
+            @Override
+            public void onRemoveGeofencesByRequestIdsResult(int statusCode, String[] geofenceRequestIds) {
+                switch (statusCode) {
+                    case LocationStatusCodes.SUCCESS:
+                        break;
+                    case LocationStatusCodes.GEOFENCE_NOT_AVAILABLE:
+                    case LocationStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES:
+                    case LocationStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS:
+                    case LocationStatusCodes.ERROR:
+                        break;
+                    default:
+                        break;
+                }
+                Log.d(AppConstants.TAG_SERVICE, String.valueOf(statusCode));
+            }
+
+            @Override
+            public void onRemoveGeofencesByPendingIntentResult(int statusCode, PendingIntent pendingIntent) {
+            }
+        };
+
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
 
     private void addGeofence() {
-        double lat = 35.755094;
-        double lng = 139.688843;
-        float radius = 200;
-
-        Geofence.Builder builder = new Geofence.Builder();
-        builder.setRequestId("imadoko_fence");
-        builder.setCircularRegion(lat, lng, radius);
-        builder.setExpirationDuration(Geofence.NEVER_EXPIRE);
-        builder.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
-        builder.setLoiteringDelay(60 * 1000); //とりあえず
-
         List<Geofence> geofences = new ArrayList<Geofence>();
-        geofences.add(builder.build());
+        for (GeofenceParcelable entity : _geofenceList) {
+            Geofence.Builder builder = new Geofence.Builder();
+            builder.setRequestId(entity.getRequestId());
+            builder.setCircularRegion(Double.parseDouble(entity.getLat()),
+                    Double.parseDouble(entity.getLng()), Float.parseFloat(entity.getRadius()));
+            builder.setExpirationDuration(Geofence.NEVER_EXPIRE);
+            builder.setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT);
+            builder.setLoiteringDelay(entity.getLoiteringDelay());
+            geofences.add(builder.build());
+        }
 
-//        Intent intent = new Intent(ACTION);
         Intent intent = new Intent(this, GeofenceService.class);
-        //intent.putExtra(AppConstants.SERIVCE_MESSAGE, AppConstants.CONNECTION.GEOFENCE_ON);
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         _locationClient.addGeofences(geofences, pendingIntent, _onAddGeofencesResultListener);
     }
 
     private void removeGeofence() {
-        // TODO
+        List<String> requestIdList = new ArrayList<String>();
+        for (GeofenceParcelable entity : _geofenceList) {
+            requestIdList.add(entity.getRequestId());
+        }
+        _locationClient.removeGeofences(requestIdList, _onRemoveGeofencesByRequestIdsResult);
     }
 
     private void createNotification() {
@@ -344,7 +374,7 @@ public class ConnectionService extends Service {
      * @param status 接続ステータス
      */
     private void sendBroadcast(CONNECTION status) {
-        Intent intent = new Intent(ACTION);
+        Intent intent = new Intent(AppConstants.ACTION);
         intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
         sendBroadcast(intent);
     }

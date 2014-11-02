@@ -9,6 +9,8 @@ import android.os.Parcelable;
  * @since 2014/10/31
  */
 public class GeofenceParcelable implements Parcelable {
+    /** リクエストID */
+    private String _requestId;
     /** 経度 */
     private String _lng;
     /** 緯度 */
@@ -16,11 +18,27 @@ public class GeofenceParcelable implements Parcelable {
     /** 半径 */
     private String _radius;
     /** 滞在時間 */
-    private long _loiteringDelay;
+    private int _loiteringDelay;
     /** 住所 */
     private String _address;
     /** ランドマーク名 */
     private String _landmark;
+
+    /**
+     * リクエストIDを返却する
+     * @return リクエストID
+     */
+    public String getRequestId() {
+        return _requestId;
+    }
+
+    /**
+     * リクエストIDを設定する
+     * @param requestId リクエストID
+     */
+    public void setRequestId(String requestId) {
+        _requestId = requestId;
+    }
 
     /**
      * 経度を返却する
@@ -74,7 +92,7 @@ public class GeofenceParcelable implements Parcelable {
      * 滞在時間を返却する
      * @return 滞在時間
      */
-    public long getLoiteringDelay() {
+    public int getLoiteringDelay() {
         return _loiteringDelay;
     }
 
@@ -82,7 +100,7 @@ public class GeofenceParcelable implements Parcelable {
      * 滞在時間を設定する
      * @param loiteringDelay 滞在時間
      */
-    public void setLoiteringDelay(long loiteringDelay) {
+    public void setLoiteringDelay(int loiteringDelay) {
         _loiteringDelay = loiteringDelay;
     }
 
@@ -121,15 +139,16 @@ public class GeofenceParcelable implements Parcelable {
     public GeofenceParcelable() {}
 
     public GeofenceParcelable(Parcel in) {
-        String[] stringArray = new String[5];
+        String[] stringArray = new String[6];
         in.readStringArray(stringArray);
 
-        _lng = stringArray[0];
-        _lat = stringArray[1];
-        _radius = stringArray[2];
-        _address = stringArray[3];
-        _landmark = stringArray[4];
-        _loiteringDelay = in.readLong();
+        _requestId = stringArray[0];
+        _lng = stringArray[1];
+        _lat = stringArray[2];
+        _radius = stringArray[3];
+        _address = stringArray[4];
+        _landmark = stringArray[5];
+        _loiteringDelay = in.readInt();
     }
 
     public static final Parcelable.Creator<GeofenceParcelable> CREATOR = new Parcelable.Creator<GeofenceParcelable>() {
@@ -152,8 +171,8 @@ public class GeofenceParcelable implements Parcelable {
     @Override
     public void writeToParcel(Parcel out, int flags) {
         out.writeStringArray(new String[] {
-            _lng, _lat, _radius, _address, _landmark
+            _requestId, _lng, _lat, _radius, _address, _landmark
         });
-        out.writeLong(_loiteringDelay);
+        out.writeInt(_loiteringDelay);
     }
 }

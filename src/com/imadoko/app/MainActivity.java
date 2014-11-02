@@ -184,12 +184,16 @@ public class MainActivity extends FragmentActivity {
         _connectionStatus.setText(message);
     }
 
-    public void onGeoFenceIn(String message) {
-        showDebugLog(message);
-    }
+    public String getLandMarkName(String requestId) {
+        String landmarkName = "";
+        for (GeofenceParcelable geofence : _geofenceList) {
+            if (requestId != null && requestId.equals(geofence.getRequestId())) {
+                landmarkName = geofence.getLandmark();
+                break;
+            }
+        }
 
-    public void onGeoFenceOut(String message) {
-        showDebugLog(message);
+        return landmarkName;
     }
 
     private void changeButton(CONNECTION status) {
@@ -228,12 +232,15 @@ public class MainActivity extends FragmentActivity {
         }
         _receiver = new ConnectionReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ConnectionService.ACTION);
+        filter.addAction(AppConstants.ACTION);
         registerReceiver(_receiver, filter);
 
         if (!isServiceRunning(this, ConnectionService.class)) {
+            final Bundle bundle = new Bundle();
+            bundle.putParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY, _geofenceList);
             Intent intent = new Intent(this, ConnectionService.class);
             intent.putExtra(AppConstants.PARAM_AUTH_KEY, _authKey);
+            intent.putExtras(bundle);
             startService(intent);
             onConnecting(message);
             Log.d(AppConstants.TAG_APPLICATION, message);

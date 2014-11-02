@@ -2,6 +2,11 @@ package com.imadoko.entity;
 
 import java.util.ArrayList;
 
+/**
+ * GeofenceEntity用エンティティクラス
+ * @author Ryuichi Tanaka
+ * @since 2014/11/01
+ */
 public class GeofenceEntity {
     /** Geofenceデータ */
     private ArrayList<GeofenceParcelable> _data;
