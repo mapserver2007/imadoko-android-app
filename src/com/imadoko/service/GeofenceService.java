@@ -7,25 +7,39 @@ import android.content.Intent;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
-import com.imadoko.app.AppConstants;
-import com.imadoko.app.AppConstants.CONNECTION;
+import com.imadoko.util.AppConstants;
+import com.imadoko.util.AppConstants.CONNECTION;
 
+/**
+ * GeofenceService
+ * @author Ryuichi Tanaka
+ * @since 2014/11/01
+ */
 public class GeofenceService extends IntentService {
-
+    /**
+     * コンストラクタ
+     */
     public GeofenceService() {
         super(GeofenceService.class.getSimpleName());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
+        Intent notifyIntent = new Intent(AppConstants.ACTION);
+
         if (LocationClient.hasError(intent)) {
-            sendBroadcast(CONNECTION.GEOFENCE_ERROR);
+            notifyIntent.putExtra(AppConstants.SERIVCE_MESSAGE, CONNECTION.GEOFENCE_ERROR);
+            sendBroadcast(notifyIntent);
             return;
         }
 
         List<Geofence> triggerList = LocationClient.getTriggeringGeofences(intent);
         if (triggerList == null) {
-            sendBroadcast(CONNECTION.GEOFENCE_ERROR);
+            notifyIntent.putExtra(AppConstants.SERIVCE_MESSAGE, CONNECTION.GEOFENCE_ERROR);
+            sendBroadcast(notifyIntent);
             return;
         }
 
@@ -47,29 +61,11 @@ public class GeofenceService extends IntentService {
                 continue;
             }
 
-            sendBroadcast(status, geofence.getRequestId());
+            notifyIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
+            notifyIntent.putExtra(AppConstants.TRANSITION_TYPE, transitionType);
+            notifyIntent.putExtra(AppConstants.GEOFENCE_REQUEST_ID, geofence.getRequestId());
+
+            sendBroadcast(notifyIntent);
         }
-    }
-
-    /**
-     * BroadcastReceiverへステータスを送信
-     * @param status 接続ステータス
-     */
-    private void sendBroadcast(CONNECTION status) {
-        Intent intent = new Intent(AppConstants.ACTION);
-        intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
-        sendBroadcast(intent);
-    }
-
-    /**
-     * BroadcastReceiverへステータスを送信
-     * @param status 接続ステータス
-     * @param requestId リクエストID
-     */
-    private void sendBroadcast(CONNECTION status, String requestId) {
-        Intent intent = new Intent(AppConstants.ACTION);
-        intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
-        intent.putExtra(AppConstants.GEOFENCE_REQUEST_ID, requestId);
-        sendBroadcast(intent);
     }
 }

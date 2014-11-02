@@ -41,12 +41,12 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationStatusCodes;
-import com.imadoko.app.AppConstants;
-import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketResponseEntity;
+import com.imadoko.util.AppConstants;
+import com.imadoko.util.AppConstants.CONNECTION;
 
 /**
  * ConnectionService
@@ -54,7 +54,6 @@ import com.imadoko.entity.WebSocketResponseEntity;
  * @since 2014/09/06
  */
 public class ConnectionService extends Service {
-    public static final String ACTION = "ServiceAction";
     private WebSocketClient _ws;
     private String _authKey;
     private ArrayList<GeofenceParcelable> _geofenceList;

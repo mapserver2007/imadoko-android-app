@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.imadoko.app.AppConstants;
-import com.imadoko.app.AppConstants.CONNECTION;
 import com.imadoko.app.MainActivity;
+import com.imadoko.util.AppConstants;
+import com.imadoko.util.AppConstants.CONNECTION;
 
 public class ConnectionReceiver extends BroadcastReceiver {
 
@@ -15,6 +15,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         MainActivity activity = (MainActivity) context;
         String requestId, message;
+        int transitionType;
         Bundle bundle = intent.getExtras();
         CONNECTION status = (CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
 
@@ -53,21 +54,24 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.showDebugLog(status.toString());
             break;
         case GEOFENCE_IN:
-            // ログは更新するが画面上のステータスは更新しない
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
+            activity.onGeofence(transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_OUT:
-            // ログは更新するが画面上のステータスは更新しない
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
+            activity.onGeofence(transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_STAY:
-            // ログは更新するが画面上のステータスは更新しない
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
+            activity.onGeofence(transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_ERROR:

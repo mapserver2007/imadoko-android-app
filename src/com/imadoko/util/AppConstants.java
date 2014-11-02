@@ -1,4 +1,4 @@
-package com.imadoko.app;
+package com.imadoko.util;
 
 /**
  * アプリケーション定数クラス
@@ -8,6 +8,7 @@ package com.imadoko.app;
 public class AppConstants {
     // 共通系
     public static final String SERIVCE_MESSAGE = "service_message";
+    public static final String TRANSITION_TYPE = "transitionType";
     public static final String GEOFENCE_REQUEST_ID = "geofenceRequestId";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
 
@@ -18,10 +19,13 @@ public class AppConstants {
     public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
     public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
     public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
+    public static final String GEOFENCE_DATA_URL = "http://imadoko-node-server.herokuapp.com/geofence/data";
+    public static final String GEOFENCE_LOG_URL = "http://imadoko-node-server.herokuapp.com/geofence/log";
     public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
 //    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
 //    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
-//    public static final String MASTER_GEOFENCE_URL = "http://192.168.0.30:9224/master/geofence";
+//    public static final String GEOFENCE_DATA_URL = "http://192.168.0.30:9224/geofence/data";
+//    public static final String GEOFENCE_LOG_URL = "http://192.168.0.30:9224/geofence/log";
 //    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final int SERVICE_CLOSE_CODE = 9999;
@@ -35,6 +39,7 @@ public class AppConstants {
     public static final String PARAM_AUTH_KEY = "authKey";
     public static final String PARAM_USERNAME = "userName";
     public static final String PARAM_GEOFENCE_ENTITY = "geofenceEntity";
+    public static final String PARAM_TRANSITION_TYPE = "transitionType";
 
     /** LogID */
     public static final String TAG_APPLICATION = "Application";

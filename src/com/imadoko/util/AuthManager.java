@@ -7,7 +7,6 @@ import org.apache.commons.codec.binary.Hex;
 
 import android.util.Log;
 
-import com.imadoko.app.AppConstants;
 
 /**
  * 認証を実行する

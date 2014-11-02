@@ -18,6 +18,7 @@ import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
+import com.imadoko.util.AppConstants;
 import com.imadoko.util.AuthErrorDialogFragment;
 import com.imadoko.util.AuthManager;
 
@@ -56,7 +57,7 @@ public class SplashActivity extends FragmentActivity {
     private void onAuthResult(int statusCode) {
         if (statusCode == HttpStatus.SC_OK) {
             HttpRequestEntity entity = new HttpRequestEntity();
-            entity.setUrl(AppConstants.MASTER_GEOFENCE_URL);
+            entity.setUrl(AppConstants.GEOFENCE_DATA_URL);
             Map<String, String> params = new HashMap<String, String>();
             params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
             entity.setParams(params);

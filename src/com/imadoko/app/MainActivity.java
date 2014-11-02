@@ -10,6 +10,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import net.arnx.jsonic.JSON;
+
 import org.apache.http.HttpStatus;
 
 import android.app.ActivityManager;
@@ -36,14 +38,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.imadoko.app.AppConstants.CONNECTION;
+import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.receiver.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
+import com.imadoko.util.AppConstants;
 import com.imadoko.util.SettingsDialogFragment;
+import com.imadoko.util.AppConstants.CONNECTION;
 
 /**
  * MainActivity
@@ -182,6 +186,24 @@ public class MainActivity extends FragmentActivity {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
         _connectionStatus.setText(message);
+    }
+
+    public void onGeofence(int transitionType) {
+        HttpRequestEntity entity = new HttpRequestEntity();
+        entity.setUrl(AppConstants.GEOFENCE_LOG_URL);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+        params.put(AppConstants.PARAM_TRANSITION_TYPE, String.valueOf(transitionType));
+        entity.setParams(params);
+
+        AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
+            @Override
+            public void deliverResult(HttpResponseEntity response) {
+                String message = response.getStatusCode() == 200 ? "Geofenceログ保存成功" : "Geofenceログ保存失敗";
+                showDebugLog(message);
+            }
+        };
+        loader.post();
     }
 
     public String getLandMarkName(String requestId) {
