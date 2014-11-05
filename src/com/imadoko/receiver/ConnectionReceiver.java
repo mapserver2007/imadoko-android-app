@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.imadoko.app.MainActivity;
+import com.imadoko.activity.MainActivity;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
 

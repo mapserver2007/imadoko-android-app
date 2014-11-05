@@ -21,11 +21,13 @@ public class AppConstants {
     public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
     public static final String GEOFENCE_DATA_URL = "http://imadoko-node-server.herokuapp.com/geofence/data";
     public static final String GEOFENCE_LOG_URL = "http://imadoko-node-server.herokuapp.com/geofence/log";
+    public static final String GEOFENCE_STATUS_URL = "http://imadoko-node-server.herokuapp.com/geofence/status";
     public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
 //    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
 //    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
 //    public static final String GEOFENCE_DATA_URL = "http://192.168.0.30:9224/geofence/data";
 //    public static final String GEOFENCE_LOG_URL = "http://192.168.0.30:9224/geofence/log";
+//    public static final String GEOFENCE_STATUS_URL = "http://192.168.0.30:9224/geofence/status";
 //    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final int SERVICE_CLOSE_CODE = 9999;
@@ -35,11 +37,17 @@ public class AppConstants {
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
 
+    /** Geofenceステータス */
+    public static final int GEOFENCE_NOTIFICATION_OK = 1;
+    public static final int GEOFENCE_NOTIFICATION_NG = 0;
+    public static final int TRANSITION_TYPE_ENTER = 1;
+
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";
     public static final String PARAM_USERNAME = "userName";
     public static final String PARAM_GEOFENCE_ENTITY = "geofenceEntity";
     public static final String PARAM_TRANSITION_TYPE = "transitionType";
+    public static final String PARAM_DIALOG_MESSAGE = "dialogMessage";
 
     /** LogID */
     public static final String TAG_APPLICATION = "Application";

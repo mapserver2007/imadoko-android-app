@@ -41,7 +41,7 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationStatusCodes;
-import com.imadoko.app.MainActivity;
+import com.imadoko.activity.MainActivity;
 import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketResponseEntity;

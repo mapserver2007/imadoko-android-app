@@ -1,4 +1,4 @@
-package com.imadoko.util;
+package com.imadoko.activity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,18 +9,18 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.ContextThemeWrapper;
 
-import com.imadoko.app.MainActivity;
 import com.imadoko.app.R;
 
 public class AlertDialogFragment extends DialogFragment {
 
     private Dialog _dialog;
+    private String _message;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.ErrorDialogTheme));
         _dialog = builder
-            .setMessage("imadokoサーバとの接続が切断されました。")
+            .setMessage(_message)
             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -48,5 +48,9 @@ public class AlertDialogFragment extends DialogFragment {
     public void onStop() {
         super.onStop();
         getActivity().finish();
+    }
+
+    public void setMessage(String message) {
+        _message = message;
     }
 }

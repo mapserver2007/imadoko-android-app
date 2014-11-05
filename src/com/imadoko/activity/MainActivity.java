@@ -1,4 +1,4 @@
-package com.imadoko.app;
+package com.imadoko.activity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -38,16 +38,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.internal.en;
+import com.google.android.gms.location.Geofence;
+import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
+import com.imadoko.entity.GeofenceStatusEntity;
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
+import com.imadoko.entity.WebSocketResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.receiver.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
 import com.imadoko.util.AppConstants;
-import com.imadoko.util.SettingsDialogFragment;
 import com.imadoko.util.AppConstants.CONNECTION;
+import com.imadoko.util.AppUtils;
 
 /**
  * MainActivity
@@ -164,7 +169,7 @@ public class MainActivity extends FragmentActivity {
 
     public void onConnectionError(String message) {
         if (stopService(message)) {
-            showDialog(message);
+            showDialog("imadokoサーバとの接続が切断されました。");
         }
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
@@ -189,6 +194,44 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onGeofence(int transitionType) {
+        HttpRequestEntity entity = new HttpRequestEntity();
+        entity.setUrl(AppConstants.GEOFENCE_STATUS_URL);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+        entity.setParams(params);
+
+        final int nextTransitionType = transitionType;
+        AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
+            @Override
+            public void deliverResult(HttpResponseEntity response) {
+                if (response.getStatusCode() == 200) {
+                    GeofenceStatusEntity entity = JSON.decode(response.getResponseBody(), GeofenceStatusEntity.class);
+                    int prevTransitionType = entity.getTransitionType();
+                    int expired = entity.getExpired();
+
+                    // TODO 現在は、Geofence地点ごとのチェックではなく全部の地点が同じに判定されてるので問題がある。
+                    // 比較的近い地点がGeofence設定されると終わるので治す
+
+                    // 通知可能な移動ステータスの遷移
+                    if (AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, expired)) {
+                        // 通知許可なら通知実行
+                        if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                            (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                            (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
+                            showDebugLog("Geofence通知実行");
+                            showDialog("判定処理つくらなー");
+                        } else {
+                            showDebugLog("Geofence通知不実行");
+                        }
+                    }
+                    writeGeofenceLog(nextTransitionType);
+                }
+            }
+        };
+        loader.get();
+    }
+
+    private void writeGeofenceLog(int transitionType) {
         HttpRequestEntity entity = new HttpRequestEntity();
         entity.setUrl(AppConstants.GEOFENCE_LOG_URL);
         Map<String, String> params = new HashMap<String, String>();
@@ -290,6 +333,7 @@ public class MainActivity extends FragmentActivity {
 
     private void showDialog(String message) {
         Intent dialogIntent = new Intent(this, AlertDialogActivity.class);
+        dialogIntent.putExtra(AppConstants.PARAM_DIALOG_MESSAGE, message);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, dialogIntent, 0);
         try {
             pendingIntent.send();
@@ -358,8 +402,7 @@ public class MainActivity extends FragmentActivity {
         public void handleMessage(Message msg) {
             MainActivity activity = _activity.get();
             if (activity != null) {
-                activity.getConnectionImageView().setImageDrawable(
-                        activity.getConnectionImages()[msg.what]);
+                activity.getConnectionImageView().setImageDrawable(activity.getConnectionImages()[msg.what]);
             }
         }
     }

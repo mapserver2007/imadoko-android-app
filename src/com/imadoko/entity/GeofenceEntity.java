@@ -3,7 +3,7 @@ package com.imadoko.entity;
 import java.util.ArrayList;
 
 /**
- * GeofenceEntity用エンティティクラス
+ * Geofenceエンティティクラス
  * @author Ryuichi Tanaka
  * @since 2014/11/01
  */

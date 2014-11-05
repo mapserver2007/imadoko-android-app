@@ -1,4 +1,4 @@
-package com.imadoko.app;
+package com.imadoko.activity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,14 +13,14 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 
+import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.util.AppConstants;
-import com.imadoko.util.AuthErrorDialogFragment;
-import com.imadoko.util.AuthManager;
+import com.imadoko.util.AppUtils;
 
 public class SplashActivity extends FragmentActivity {
 
@@ -99,7 +99,6 @@ public class SplashActivity extends FragmentActivity {
 
     private String getAuthKey() {
         String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        AuthManager manager = new AuthManager(udid, AppConstants.SECURITY_SALT);
-        return manager.generateAuthKey();
+        return AppUtils.generateAuthKey(udid, AppConstants.SECURITY_SALT);
     }
 }
