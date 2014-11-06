@@ -33,19 +33,23 @@ public class AppUtils {
      * Geofence通知するかどうか
      * @param prevTransitionType 直前のGeofence移動ステータス
      * @param nextTransitionType 現在のGeofence移動ステータス
+     * @param prevPlaceId 直前の地点ID
+     * @param nextPlaceId 現在の地点ID
      * @param expired 直近ログより一定時間経過しているかどうか(0:経過していない、1:経過している)
      * @return 通知可否
      */
-    public static boolean isGeofenceNotification(int prevTransitionType, int nextTransitionType, int expired) {
+    public static boolean isGeofenceNotification(int prevTransitionType, int nextTransitionType, int prevPlaceId, int nextPlaceId, int expired) {
         int n = prevTransitionType * 10 + nextTransitionType;
         boolean isNotify = false;
 
-        // TODO
-        // expiredは現在2時間にしているが、意味が無いかもしれない
-        // expiredの本質は、Geofence境界でIn/Outイベントが頻発することを防止することなので修正が必要
-
         switch (n) {
         case 11: // in -> in
+            // in -> in はありえるパターン
+            // たとえば、地点Aでin→電波OFF→地点Bで電波ON→地点Bでin
+            // in -> in間が異なる場所であれば通知する
+            if (prevPlaceId != nextPlaceId) {
+                isNotify = true;
+            }
             break;
         case 12: // in -> out
             isNotify = true;
@@ -54,13 +58,24 @@ public class AppUtils {
             isNotify = true;
             break;
         case 21: // out -> in
-            isNotify = true;
+            // out(地点A) -> in(地点A)は一定時間以上経過していないと通知しない
+            // これはGeofence境界をうろついた時の連続通知を防止するため
+            // expired=1ならば一定時間以上経過しているので通知する
+            if (expired == 1) {
+                isNotify = true;
+            }
             break;
         case 22: // out -> out
             break;
         case 24: // out -> stay
             break;
         case 41: // stay -> in
+            // stay -> inはありえるパターン
+            // stay(地点A) -> 電波OFF -> 電波ON(地点B) -> in(地点B)
+            // stay -> in間が異なる場所であれば通知する
+            if (prevPlaceId != nextPlaceId) {
+                isNotify = true;
+            }
             break;
         case 42: // stay -> out
             isNotify = true;

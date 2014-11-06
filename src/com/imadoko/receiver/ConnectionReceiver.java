@@ -57,21 +57,21 @@ public class ConnectionReceiver extends BroadcastReceiver {
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
-            activity.onGeofence(transitionType);
+            activity.onGeofence(Integer.parseInt(requestId), transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_OUT:
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
-            activity.onGeofence(transitionType);
+            activity.onGeofence(Integer.parseInt(requestId), transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_STAY:
             requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
             message = activity.getLandMarkName(requestId);
-            activity.onGeofence(transitionType);
+            activity.onGeofence(Integer.parseInt(requestId), transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_ERROR:

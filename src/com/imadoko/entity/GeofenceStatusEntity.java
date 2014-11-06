@@ -6,6 +6,8 @@ package com.imadoko.entity;
  * @since 2014/11/04
  */
 public class GeofenceStatusEntity {
+    /** 地点ID */
+    private int _placeId;
     /** 移動ステータス */
     private int _transitionType;
     /** ログ書き込み可否 */
@@ -16,6 +18,22 @@ public class GeofenceStatusEntity {
     private int _out;
     /** Geofence滞在通知フラグ */
     private int _stay;
+
+    /**
+     * 地点IDを返却する
+     * @return 地点ID
+     */
+    public int getPlaceId() {
+        return _placeId;
+    }
+
+    /**
+     * 地点IDを設定する
+     * @param placeId 地点ID
+     */
+    public void setPlaceId(int placeId) {
+        _placeId = placeId;
+    }
 
     /**
      * 移動ステータスを返却する

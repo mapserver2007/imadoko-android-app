@@ -9,6 +9,8 @@ import android.os.Parcelable;
  * @since 2014/10/31
  */
 public class GeofenceParcelable implements Parcelable {
+    /** PlaceID */
+    private int _id;
     /** リクエストID */
     private String _requestId;
     /** 経度 */
@@ -23,6 +25,22 @@ public class GeofenceParcelable implements Parcelable {
     private String _address;
     /** ランドマーク名 */
     private String _landmark;
+
+    /**
+     * 地点IDを返却する
+     * @return 地点ID
+     */
+    public int getId() {
+        return _id;
+    }
+
+    /**
+     * 地点IDを設定する
+     * @param placeid 地点ID
+     */
+    public void setId(int id) {
+        _id = id;
+    }
 
     /**
      * リクエストIDを返却する
