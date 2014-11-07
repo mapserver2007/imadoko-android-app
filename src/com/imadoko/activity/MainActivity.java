@@ -212,33 +212,37 @@ public class MainActivity extends FragmentActivity {
                     int expired = entity.getExpired();
                     String patternId = String.valueOf(prevTransitionType * 10 + nextTransitionType);
 
-                    // 通知可能な移動ステータスの遷移
-                    if (AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, prevPlaceId, nextPlaceId, expired)) {
-                        showDebugLog("通知可能なGeofence遷移:" + patternId);
-                        // 通知許可なら通知実行
-                        if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
-                            (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
-                            (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
-                            showDebugLog("Geofence通知実行");
-                            showDialog("判定処理つくらなー");
+                    // prevPlaceId=0の時はログ件数が0
+                    if (prevPlaceId > 0) {
+                        // 通知可能な移動ステータスの遷移
+                        if (AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, prevPlaceId, nextPlaceId, expired)) {
+                            showDebugLog("通知可能なGeofence遷移:" + patternId);
+                            // 通知許可なら通知実行
+                            if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                                (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                                (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
+                                showDebugLog("Geofence通知実行");
+                                showDialog("判定処理つくらなー");
+                            } else {
+                                showDebugLog("通知不許可なGeofence設定");
+                            }
                         } else {
-                            showDebugLog("通知不許可なGeofence設定");
+                            showDebugLog("通知不許可なGeofence遷移:" + patternId);
                         }
-                    } else {
-                        showDebugLog("通知不許可なGeofence遷移:" + patternId);
                     }
-                    writeGeofenceLog(nextTransitionType);
+                    writeGeofenceLog(nextPlaceId, nextTransitionType);
                 }
             }
         };
         loader.get();
     }
 
-    private void writeGeofenceLog(int transitionType) {
+    private void writeGeofenceLog(int placeId, int transitionType) {
         HttpRequestEntity entity = new HttpRequestEntity();
         entity.setUrl(AppConstants.GEOFENCE_LOG_URL);
         Map<String, String> params = new HashMap<String, String>();
         params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+        params.put(AppConstants.PARAM_PLACE_ID, String.valueOf(placeId));
         params.put(AppConstants.PARAM_TRANSITION_TYPE, String.valueOf(transitionType));
         entity.setParams(params);
 

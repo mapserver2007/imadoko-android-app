@@ -52,6 +52,7 @@ public class AppUtils {
             }
             break;
         case 12: // in -> out
+            // out -> inを時間で制限しているが逆にこちらはゆるくする
             isNotify = true;
             break;
         case 14: // in -> stay
@@ -60,6 +61,7 @@ public class AppUtils {
         case 21: // out -> in
             // out(地点A) -> in(地点A)は一定時間以上経過していないと通知しない
             // これはGeofence境界をうろついた時の連続通知を防止するため
+            // つまり、Geofence地点へは一定期間内に1度しか侵入できない仕様
             // expired=1ならば一定時間以上経過しているので通知する
             if (expired == 1) {
                 isNotify = true;
