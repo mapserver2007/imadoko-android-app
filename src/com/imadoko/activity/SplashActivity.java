@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 
 import com.imadoko.app.R;
+import com.imadoko.entity.AuthSaltEntity;
 import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.HttpRequestEntity;
@@ -80,24 +81,35 @@ public class SplashActivity extends FragmentActivity {
     }
 
     private void executeAuth() {
-        _authKey = getAuthKey();
-        HttpRequestEntity entity = new HttpRequestEntity();
-        entity.setUrl(AppConstants.AUTH_URL);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
-        entity.setParams(params);
+        HttpRequestEntity entity1 = new HttpRequestEntity();
+        entity1.setUrl(AppConstants.AUTHSALT_URL);
 
-        AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
+        AsyncHttpTaskLoader loader1 = new AsyncHttpTaskLoader(this, entity1) {
             @Override
             public void deliverResult(HttpResponseEntity response) {
-                onAuthResult(response.getStatusCode());
+                if (response.getStatusCode() == HttpStatus.SC_OK) {
+                    AuthSaltEntity authSaltEntity = JSON.decode(response.getResponseBody(), AuthSaltEntity.class);
+                    String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+                    _authKey = AppUtils.generateAuthKey(udid, authSaltEntity.getSalt());
+
+                    HttpRequestEntity entity2 = new HttpRequestEntity();
+                    entity2.setUrl(AppConstants.AUTH_URL);
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+                    entity2.setParams(params);
+
+                    AsyncHttpTaskLoader loader2 = new AsyncHttpTaskLoader(SplashActivity.this, entity2) {
+                        @Override
+                        public void deliverResult(HttpResponseEntity response) {
+                            onAuthResult(response.getStatusCode());
+                        }
+                    };
+                    loader2.post();
+                } else {
+                    onAuthResult(response.getStatusCode());
+                }
             }
         };
-        loader.post();
-    }
-
-    private String getAuthKey() {
-        String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        return AppUtils.generateAuthKey(udid, AppConstants.SECURITY_SALT);
+        loader1.get();
     }
 }

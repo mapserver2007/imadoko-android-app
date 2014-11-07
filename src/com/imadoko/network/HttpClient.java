@@ -67,8 +67,10 @@ public class HttpClient {
      */
     public HttpClient get(String url, Map<String, String> params) {
         Uri.Builder builder = Uri.parse(url).buildUpon();
-        for (Map.Entry<String, String> param : params.entrySet()) {
-            builder.appendQueryParameter(param.getKey(), param.getValue());
+        if (params != null) {
+            for (Map.Entry<String, String> param : params.entrySet()) {
+                builder.appendQueryParameter(param.getKey(), param.getValue());
+            }
         }
 
         HttpGet httpGet = new HttpGet(builder.build().toString());
@@ -87,8 +89,10 @@ public class HttpClient {
         HttpPost httpPost = new HttpPost(url);
 
         List<NameValuePair> postParams = new ArrayList<NameValuePair>();
-        for (Map.Entry<String, String> param : params.entrySet()) {
-            postParams.add(new BasicNameValuePair(param.getKey(), param.getValue()));
+        if (params != null) {
+            for (Map.Entry<String, String> param : params.entrySet()) {
+                postParams.add(new BasicNameValuePair(param.getKey(), param.getValue()));
+            }
         }
 
         try {

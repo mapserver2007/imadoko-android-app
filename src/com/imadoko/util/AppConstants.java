@@ -19,6 +19,7 @@ public class AppConstants {
 
     /** WebSocket/REST系 */
 //    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
+//    public static final String AUTHSALT_URL = "http://imadoko-node-server.herokuapp.com/salt";
 //    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
 //    public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
 //    public static final String GEOFENCE_DATA_URL = "http://imadoko-node-server.herokuapp.com/geofence/data";
@@ -26,6 +27,7 @@ public class AppConstants {
 //    public static final String GEOFENCE_STATUS_URL = "http://imadoko-node-server.herokuapp.com/geofence/status";
 //    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
     public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
+    public static final String AUTHSALT_URL = "http://192.168.0.30:9224/salt";
     public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
     public static final String GEOFENCE_DATA_URL = "http://192.168.0.30:9224/geofence/data";
     public static final String GEOFENCE_LOG_URL = "http://192.168.0.30:9224/geofence/log";
@@ -64,9 +66,6 @@ public class AppConstants {
     public static final String DIALOG_ALERT = "DialogAlert";
     public static final String DIALOG_SETTINGS = "DialogSettings";
     public static final String DIALOG_AUTH_ERROR = "DialogAuthError";
-
-    /** salt */
-    public static final String SECURITY_SALT = "1xd5pEBShVey9LFz3rMVHHdrRkKbLAuNuun9fS7x";
 
     /** UI系 */
     public static final int SWIPE_MIN_DISTANCE = 120;

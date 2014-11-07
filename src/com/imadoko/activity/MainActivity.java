@@ -221,10 +221,10 @@ public class MainActivity extends FragmentActivity {
                             if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                                 (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                                 (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
-                                showDebugLog("Geofence通知実行");
+                                showDebugLog("Geofence通知あり");
                                 showDialog("判定処理つくらなー");
                             } else {
-                                showDebugLog("通知不許可なGeofence設定");
+                                showDebugLog("Geofence通知設定なし");
                             }
                         } else {
                             showDebugLog("通知不許可なGeofence遷移:" + patternId);
