@@ -34,6 +34,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -84,6 +85,7 @@ public class MainActivity extends FragmentActivity {
         Bundle bundle = intent.getExtras();
 
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
+        _userName = intent.getStringExtra(AppConstants.PARAM_USERNAME);
         _geofenceList = bundle.getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
@@ -133,6 +135,7 @@ public class MainActivity extends FragmentActivity {
                 SettingsDialogFragment dialog = new SettingsDialogFragment();
                 View layout = inflater.inflate(R.layout.dialog_username, (ViewGroup) findViewById(R.id.dialog_edittext));
                 dialog.setLayout(layout);
+                dialog.setUserName(_userName);
                 dialog.show(getFragmentManager(), AppConstants.DIALOG_SETTINGS);
             }
         });
@@ -365,10 +368,6 @@ public class MainActivity extends FragmentActivity {
             showDebugLog(CONNECTION.USERNAME_REGISTER_NG.toString());
             Toast.makeText(this, CONNECTION.USERNAME_REGISTER_NG.toString(), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private String getUserName() {
-        return null;
     }
 
     public void registerUserName(String userName) {

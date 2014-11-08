@@ -25,6 +25,8 @@ public class GeofenceParcelable implements Parcelable {
     private String _address;
     /** ランドマーク名 */
     private String _landmark;
+    /** ユーザ名 */
+    private String _username;
 
     /**
      * 地点IDを返却する
@@ -154,10 +156,26 @@ public class GeofenceParcelable implements Parcelable {
         _landmark = landmark;
     }
 
+    /**
+     * ユーザ名を返却する
+     * @return ユーザ名
+     */
+    public String getUsername() {
+        return _username;
+    }
+
+    /**
+     * ユーザ名を設定する
+     * @param username ユーザ名
+     */
+    public void setUsername(String username) {
+        _username = username;
+    }
+
     public GeofenceParcelable() {}
 
     public GeofenceParcelable(Parcel in) {
-        String[] stringArray = new String[6];
+        String[] stringArray = new String[7];
         in.readStringArray(stringArray);
 
         _requestId = stringArray[0];
@@ -166,6 +184,7 @@ public class GeofenceParcelable implements Parcelable {
         _radius = stringArray[3];
         _address = stringArray[4];
         _landmark = stringArray[5];
+        _username = stringArray[6];
         _loiteringDelay = in.readInt();
     }
 
@@ -189,7 +208,7 @@ public class GeofenceParcelable implements Parcelable {
     @Override
     public void writeToParcel(Parcel out, int flags) {
         out.writeStringArray(new String[] {
-            _requestId, _lng, _lat, _radius, _address, _landmark
+            _requestId, _lng, _lat, _radius, _address, _landmark, _username
         });
         out.writeInt(_loiteringDelay);
     }

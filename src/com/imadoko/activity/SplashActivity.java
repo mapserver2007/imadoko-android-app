@@ -40,6 +40,9 @@ public class SplashActivity extends FragmentActivity {
     }
 
     private void startMainActivity(ArrayList<GeofenceParcelable> geofenceList) {
+        // geofenceListが空の場合(マスタに1件もない場合)を想定していない
+        // 作りこむならService側でも対処が必要
+        String userName = geofenceList.get(0).getUsername();
         for (GeofenceParcelable geofence : geofenceList) {
             geofence.setRequestId(String.valueOf(geofence.getId())); // placeId -> requestId
             geofence.setLoiteringDelay(AppConstants.LOITERING_DELAY);
@@ -49,6 +52,7 @@ public class SplashActivity extends FragmentActivity {
         bundle.putParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY, geofenceList);
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.putExtra(AppConstants.PARAM_AUTH_KEY, _authKey);
+        intent.putExtra(AppConstants.PARAM_USERNAME, userName);
         intent.putExtras(bundle);
         startActivity(intent);
         finish();

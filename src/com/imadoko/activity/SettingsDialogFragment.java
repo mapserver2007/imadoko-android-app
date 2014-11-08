@@ -16,10 +16,13 @@ import com.imadoko.app.R;
 public class SettingsDialogFragment extends DialogFragment {
     private Dialog _dialog;
     private View _layout;
+    private String _userName;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.ErrorDialogTheme));
+        ((EditText) _layout.findViewById(R.id.dialog_edittext)).setText(_userName);
+
         _dialog = builder
             .setMessage("表示するユーザ名を入力")
             .setView(_layout)
@@ -56,5 +59,9 @@ public class SettingsDialogFragment extends DialogFragment {
 
     public void setLayout(View layout) {
         _layout = layout;
+    }
+
+    public void setUserName(String userName) {
+        _userName = userName;
     }
 }
