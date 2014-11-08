@@ -63,7 +63,7 @@ public class GeofenceService extends IntentService {
 
             notifyIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
             notifyIntent.putExtra(AppConstants.TRANSITION_TYPE, transitionType);
-            notifyIntent.putExtra(AppConstants.GEOFENCE_REQUEST_ID, geofence.getRequestId());
+            notifyIntent.putExtra(AppConstants.GEOFENCE_PLACE_ID, Integer.parseInt(geofence.getRequestId()));
 
             sendBroadcast(notifyIntent);
         }

@@ -176,8 +176,11 @@ public class GeofenceParcelable implements Parcelable {
 
     public GeofenceParcelable(Parcel in) {
         String[] stringArray = new String[7];
+        int[] intArray = new int[2];
         in.readStringArray(stringArray);
+        in.readIntArray(intArray);
 
+        _id = intArray[0];
         _requestId = stringArray[0];
         _lng = stringArray[1];
         _lat = stringArray[2];
@@ -185,7 +188,7 @@ public class GeofenceParcelable implements Parcelable {
         _address = stringArray[4];
         _landmark = stringArray[5];
         _username = stringArray[6];
-        _loiteringDelay = in.readInt();
+        _loiteringDelay = intArray[1];
     }
 
     public static final Parcelable.Creator<GeofenceParcelable> CREATOR = new Parcelable.Creator<GeofenceParcelable>() {
@@ -210,6 +213,8 @@ public class GeofenceParcelable implements Parcelable {
         out.writeStringArray(new String[] {
             _requestId, _lng, _lat, _radius, _address, _landmark, _username
         });
-        out.writeInt(_loiteringDelay);
+        out.writeIntArray(new int[] {
+            _id, _loiteringDelay
+        });
     }
 }

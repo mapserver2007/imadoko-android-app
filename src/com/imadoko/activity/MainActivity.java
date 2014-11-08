@@ -34,20 +34,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.internal.en;
 import com.google.android.gms.location.Geofence;
 import com.imadoko.app.R;
-import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.GeofenceStatusEntity;
 import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
-import com.imadoko.entity.WebSocketResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.receiver.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
@@ -65,6 +61,7 @@ public class MainActivity extends FragmentActivity {
     private ConnectionReceiver _receiver;
     private TextView _connectionStatus;
     private TextView _debugLog;
+    private TextView _geofenceLog;
     private ImageView _connectionImage;
     private Drawable _connectedImage;
     private Drawable _disconnectImage;
@@ -72,6 +69,7 @@ public class MainActivity extends FragmentActivity {
     private int _drawableIndex;
     private Timer _connectingTimer;
     private Queue<String> _debugLogQueue;
+    private Queue<String> _geofenceLogQueue;
     private String _authKey;
     private ArrayList<GeofenceParcelable> _geofenceList;
     private String _userName;
@@ -90,7 +88,9 @@ public class MainActivity extends FragmentActivity {
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
         _debugLog = (TextView) findViewById(R.id.debug_log);
+        _geofenceLog = (TextView) findViewById(R.id.geofence_log);
         _debugLogQueue = new ConcurrentLinkedQueue<String>();
+        _geofenceLogQueue = new ConcurrentLinkedQueue<String>();
         Resources res = this.getResources();
         _connectedImage = res.getDrawable(R.drawable.connected);
         _disconnectImage = res.getDrawable(R.drawable.disconnect);
@@ -213,26 +213,39 @@ public class MainActivity extends FragmentActivity {
                     int prevPlaceId = entity.getPlaceId();
                     int prevTransitionType = entity.getTransitionType();
                     int expired = entity.getExpired();
-                    String patternId = String.valueOf(prevTransitionType * 10 + nextTransitionType);
+                    int patternId = prevTransitionType * 10 + nextTransitionType;
+                    boolean isValidStateChange = AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, prevPlaceId, nextPlaceId, expired);
 
                     // prevPlaceId=0の時はログ件数が0
                     if (prevPlaceId > 0) {
                         // 通知可能な移動ステータスの遷移
-                        if (AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, prevPlaceId, nextPlaceId, expired)) {
-                            showDebugLog("通知可能なGeofence遷移:" + patternId);
+                        if (isValidStateChange) {
+                            showDebugLog("通知可能なGeofence遷移:" + String.valueOf(patternId));
                             // 通知許可なら通知実行
                             if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                                 (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                                 (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
                                 showDebugLog("Geofence通知あり");
+
+                                // TODO
                                 showDialog("判定処理つくらなー");
                             } else {
                                 showDebugLog("Geofence通知設定なし");
                             }
                         } else {
-                            showDebugLog("通知不許可なGeofence遷移:" + patternId);
+                            showDebugLog("通知不許可なGeofence遷移:" + String.valueOf(patternId));
                         }
                     }
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(getLandMarkName(prevPlaceId))
+                        .append("(").append(AppUtils.getGeofenceStatus(prevTransitionType)).append(")")
+                        .append("→")
+                        .append(getLandMarkName(nextPlaceId))
+                        .append("(").append(AppUtils.getGeofenceStatus(nextTransitionType)).append(")")
+                        .append(" ").append(isValidStateChange ? "OKパターン" : "NGパターン");
+
+                    showGeofenceLog(sb.toString());
                     writeGeofenceLog(nextPlaceId, nextTransitionType);
                 }
             }
@@ -259,10 +272,10 @@ public class MainActivity extends FragmentActivity {
         loader.post();
     }
 
-    public String getLandMarkName(String requestId) {
+    public String getLandMarkName(int placeId) {
         String landmarkName = "";
         for (GeofenceParcelable geofence : _geofenceList) {
-            if (requestId != null && requestId.equals(geofence.getRequestId())) {
+            if (placeId == geofence.getId()) {
                 landmarkName = geofence.getLandmark();
                 break;
             }
@@ -358,6 +371,15 @@ public class MainActivity extends FragmentActivity {
         }
         _debugLogQueue.add(datetime + ": " + message);
         _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
+    }
+
+    private void showGeofenceLog(String message) {
+        String datetime = String.valueOf(DateFormat.format("yyyy/MM/dd kk:mm:ss", System.currentTimeMillis()));
+        if (_geofenceLogQueue.size() >= AppConstants.GEOFENCE_LOG_MAX_SIZE) {
+            _geofenceLogQueue.poll();
+        }
+        _geofenceLogQueue.add(datetime + ": " + message);
+        _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
     }
 
     public void onRegisterUserNameResult(int statusCode) {

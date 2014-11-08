@@ -14,7 +14,8 @@ public class ConnectionReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         MainActivity activity = (MainActivity) context;
-        String requestId, message;
+        String message;
+        int placeId;
         int transitionType;
         Bundle bundle = intent.getExtras();
         CONNECTION status = (CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
@@ -54,24 +55,24 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.showDebugLog(status.toString());
             break;
         case GEOFENCE_IN:
-            requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            placeId = bundle.getInt(AppConstants.GEOFENCE_PLACE_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
-            message = activity.getLandMarkName(requestId);
-            activity.onGeofence(Integer.parseInt(requestId), transitionType);
+            message = activity.getLandMarkName(placeId);
+            activity.onGeofence(placeId, transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_OUT:
-            requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            placeId = bundle.getInt(AppConstants.GEOFENCE_PLACE_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
-            message = activity.getLandMarkName(requestId);
-            activity.onGeofence(Integer.parseInt(requestId), transitionType);
+            message = activity.getLandMarkName(placeId);
+            activity.onGeofence(placeId, transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_STAY:
-            requestId = bundle.getString(AppConstants.GEOFENCE_REQUEST_ID);
+            placeId = bundle.getInt(AppConstants.GEOFENCE_PLACE_ID);
             transitionType = bundle.getInt(AppConstants.TRANSITION_TYPE);
-            message = activity.getLandMarkName(requestId);
-            activity.onGeofence(Integer.parseInt(requestId), transitionType);
+            message = activity.getLandMarkName(placeId);
+            activity.onGeofence(placeId, transitionType);
             activity.showDebugLog(message + status.toString());
             break;
         case GEOFENCE_ERROR:

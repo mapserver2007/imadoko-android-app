@@ -11,8 +11,9 @@ public class AppConstants {
     public static final String TRANSITION_TYPE = "transitionType";
     public static final String TRIGGERED_LONGITUDE = "triggeredLongitude";
     public static final String TRIGGERED_LATITUDE = "triggeredLatitude";
-    public static final String GEOFENCE_REQUEST_ID = "geofenceRequestId";
+    public static final String GEOFENCE_PLACE_ID = "geofencePlaceId";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
+    public static final int GEOFENCE_LOG_MAX_SIZE = 3;
 
     /** Action */
     public static final String ACTION = "com.imadoko.app.MainActivity";
@@ -44,7 +45,9 @@ public class AppConstants {
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;
     public static final int GEOFENCE_NOTIFICATION_NG = 0;
-    public static final int TRANSITION_TYPE_ENTER = 1;
+    public static final int TRANSITION_TYPE_ENTER = 0x1;
+    public static final int TRANSITION_TYPE_EXIT = 0x2;
+    public static final int TRANSITION_TYPE_DWELL = 0x4;
 
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";

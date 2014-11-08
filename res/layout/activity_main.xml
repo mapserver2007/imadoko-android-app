@@ -78,4 +78,15 @@
         android:background="@null"
         android:src="@drawable/ic_settings" />
 
+    <TextView
+        android:id="@+id/geofence_log"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/connection_status"
+        android:layout_alignParentBottom="true"
+        android:gravity="left|bottom"
+        android:maxLines="@string/geofence_log_line"
+        android:textColor="#fff"
+        android:textSize="12sp" />
+
 </RelativeLayout>

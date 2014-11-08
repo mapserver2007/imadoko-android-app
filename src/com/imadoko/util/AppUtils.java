@@ -89,5 +89,21 @@ public class AppUtils {
         return isNotify;
     }
 
+    public static String getGeofenceStatus(int transitionType) {
+        // TODO enumにしたい
+        String status = "";
+        switch (transitionType) {
+        case AppConstants.TRANSITION_TYPE_ENTER:
+            status = "in";
+            break;
+        case AppConstants.TRANSITION_TYPE_EXIT:
+            status = "out";
+            break;
+        case AppConstants.TRANSITION_TYPE_DWELL:
+            status = "stay";
+            break;
+        }
 
+        return status;
+    }
 }
