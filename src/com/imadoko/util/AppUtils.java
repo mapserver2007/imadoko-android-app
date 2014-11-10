@@ -5,6 +5,8 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.binary.Hex;
 
+import com.imadoko.entity.GeofenceStatusEntity;
+
 import android.util.Log;
 
 public class AppUtils {
@@ -38,16 +40,15 @@ public class AppUtils {
      * @param expired 直近ログより一定時間経過しているかどうか(0:経過していない、1:経過している)
      * @return 通知可否
      */
-    public static boolean isGeofenceNotification(int prevTransitionType, int nextTransitionType, int prevPlaceId, int nextPlaceId, int expired) {
-        int n = prevTransitionType * 10 + nextTransitionType;
+    public static boolean isGeofenceNotification(GeofenceStatusEntity status) {
         boolean isNotify = false;
 
-        switch (n) {
+        switch (status.getNextTransitionPatternId()) {
         case 11: // in -> in
             // in -> in はありえるパターン
             // たとえば、地点Aでin→電波OFF→地点Bで電波ON→地点Bでin
             // in -> in間が異なる場所であれば通知する
-            if (prevPlaceId != nextPlaceId) {
+            if (status.getPrevPlaceId() != status.getNextPlaceId()) {
                 isNotify = true;
             }
             break;
@@ -56,15 +57,29 @@ public class AppUtils {
             isNotify = true;
             break;
         case 14: // in -> stay
-            isNotify = true;
+            // 直前にout -> in(同一地点)が通知可能で発生していないと通知可能にはしない
+            // 例えば、stay(地点A) -> in(地点A) = 再起動した場合 は必ずNGとなる
+            // その後、out -> inで通知するのはおかしい。
+            // 前回の同一地点でのstayより一定時間経過していないと通知許可にしない
+            if (status.getPrevPlaceId() == status.getNextPlaceId() &&
+                status.getPrevTransitionPatternId() == 21 &&
+                status.getExpired() == 1) { // 前回のstayより一定時間経過している
+                isNotify = true;
+            }
             break;
         case 21: // out -> in
             // out(地点A) -> in(地点A)は一定時間以上経過していないと通知しない
             // これはGeofence境界をうろついた時の連続通知を防止するため
             // つまり、Geofence地点へは一定期間内に1度しか侵入できない仕様
             // expired=1ならば一定時間以上経過しているので通知する
-            if (expired == 1) {
+            // out(地点B) -> in(地点)は無条件で通知する
+            // ただし、ログ件数0(初回)でこのイベントが発生した場合は地点が一致しないくても例外的に通知を許可
+            if (status.getPrevPlaceId() != status.getNextPlaceId() || status.getPrevPlaceId() == 0) {
                 isNotify = true;
+            } else {
+                if (status.getExpired() == 1) { // 前回のinより一定時間経過している
+                    isNotify = true;
+                }
             }
             break;
         case 22: // out -> out
@@ -75,7 +90,7 @@ public class AppUtils {
             // stay -> inはありえるパターン
             // stay(地点A) -> 電波OFF -> 電波ON(地点B) -> in(地点B)
             // stay -> in間が異なる場所であれば通知する
-            if (prevPlaceId != nextPlaceId) {
+            if (status.getPrevPlaceId() != status.getNextPlaceId()) {
                 isNotify = true;
             }
             break;
@@ -84,13 +99,17 @@ public class AppUtils {
             break;
         case 44: // stay -> stay
             break;
+        default:
+            // ログが0件の場合は初回しか発生しない
+            // 遷移パターン判定せず通知可能状態とする
+            isNotify = true;
+            break;
         }
 
         return isNotify;
     }
 
     public static String getGeofenceStatus(int transitionType) {
-        // TODO enumにしたい
         String status = "";
         switch (transitionType) {
         case AppConstants.TRANSITION_TYPE_ENTER:
@@ -101,6 +120,9 @@ public class AppUtils {
             break;
         case AppConstants.TRANSITION_TYPE_DWELL:
             status = "stay";
+            break;
+        default:
+            status = "???"; // ログなしの場合
             break;
         }
 

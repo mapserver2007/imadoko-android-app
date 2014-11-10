@@ -6,11 +6,15 @@ package com.imadoko.entity;
  * @since 2014/11/04
  */
 public class GeofenceStatusEntity {
-    /** 地点ID */
-    private int _placeId;
-    /** 移動ステータス */
-    private int _transitionType;
-    /** ログ書き込み可否 */
+    /** 前回の地点ID */
+    private int _prevPlaceId;
+    /** 今回の地点ID */
+    private int _nextPlaceId;
+    /** 前回の移動ステータス */
+    private int _prevTransitionType;
+    /** 今回の移動ステータス */
+    private int _nextTransitionType;
+    /** 一定時間経過しているかどうか */
     private int _expired;
     /** Geofence進入通知フラグ */
     private int _in;
@@ -18,37 +22,73 @@ public class GeofenceStatusEntity {
     private int _out;
     /** Geofence滞在通知フラグ */
     private int _stay;
+    /** 前回の移動パターン */
+    private int _prevTransitionPatternId;
+    /** 今愛の移動パターン */
+    private int _nextTransitionPatternId;
 
     /**
-     * 地点IDを返却する
+     * 前回の地点IDを返却する
      * @return 地点ID
      */
-    public int getPlaceId() {
-        return _placeId;
+    public int getPrevPlaceId() {
+        return _prevPlaceId;
     }
 
     /**
-     * 地点IDを設定する
-     * @param placeId 地点ID
+     * 前回の地点IDを設定する
+     * @param prevPlaceId 前回の地点ID
      */
-    public void setPlaceId(int placeId) {
-        _placeId = placeId;
+    public void setPrevPlaceId(int prevPlaceId) {
+        _prevPlaceId = prevPlaceId;
+    }
+
+    /**
+     * 今回の地点IDを返却する
+     * @return 今回の地点ID
+     */
+    public int getNextPlaceId() {
+        return _nextPlaceId;
+    }
+
+    /**
+     * 今回の地点IDを設定する
+     * @param _nextPlaceId 今回の地点ID
+     */
+    public void setNextPlaceId(int nextPlaceId) {
+        _nextPlaceId = nextPlaceId;
     }
 
     /**
      * 移動ステータスを返却する
      * @return 移動ステータス
      */
-    public int getTransitionType() {
-        return _transitionType;
+    public int getNextTransitionType() {
+        return _nextTransitionType;
     }
 
     /**
      * 移動ステータスを設定する
-     * @param status 移動ステータス
+     * @param nextTransitionType 移動ステータス
      */
-    public void setTransitionType(int transitionType) {
-        _transitionType = transitionType;
+    public void setNextTransitionType(int nextTransitionType) {
+        _nextTransitionType = nextTransitionType;
+    }
+
+    /**
+     * 前回の移動ステータスを返却する
+     * @return 前回の移動ステータス
+     */
+    public int getPrevTransitionType() {
+        return _prevTransitionType;
+    }
+
+    /**
+     * 前回の移動ステータスを設定する
+     * @param prevTransitionType 前回の移動ステータス
+     */
+    public void setPrevTransitionType(int prevTransitionType) {
+        _prevTransitionType = prevTransitionType;
     }
 
     /**
@@ -113,5 +153,37 @@ public class GeofenceStatusEntity {
      */
     public void setStay(int stay) {
         _stay = stay;
+    }
+
+    /**
+     * 前回の移動パターンを返却する
+     * @return 前回の移動パターン
+     */
+    public int getPrevTransitionPatternId() {
+        return _prevTransitionPatternId;
+    }
+
+    /**
+     * 前回の移動パターンを設定する
+     * @param prevTransitionPatternId 前回の移動パターン
+     */
+    public void setPrevTransitionPatternId(int prevTransitionPatternId) {
+        _prevTransitionPatternId = prevTransitionPatternId;
+    }
+
+    /**
+     * 今回の移動パターンを返却する
+     * @return 今回の移動パターン
+     */
+    public int getNextTransitionPatternId() {
+        return _nextTransitionPatternId;
+    }
+
+    /**
+     * 今回の移動パターンを設定する
+     * @param nextTransitionPatternId 今回の移動パターン
+     */
+    public void setNextTransitionPatternId(int nextTransitionPatternId) {
+        _nextTransitionPatternId = nextTransitionPatternId;
     }
 }

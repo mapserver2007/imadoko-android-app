@@ -73,6 +73,7 @@ public class MainActivity extends FragmentActivity {
     private String _authKey;
     private ArrayList<GeofenceParcelable> _geofenceList;
     private String _userName;
+    private int _prevTransitionTypeState;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -196,57 +197,55 @@ public class MainActivity extends FragmentActivity {
         _connectionStatus.setText(message);
     }
 
-    public void onGeofence(int placeId, int transitionType) {
+    public void onGeofence(final int nextPlaceId, final int nextTransitionType) {
         HttpRequestEntity entity = new HttpRequestEntity();
         entity.setUrl(AppConstants.GEOFENCE_STATUS_URL);
         Map<String, String> params = new HashMap<String, String>();
         params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
+        params.put(AppConstants.PARAM_TRANSITION_TYPE, String.valueOf(nextTransitionType));
         entity.setParams(params);
 
-        final int nextPlaceId = placeId;
-        final int nextTransitionType = transitionType;
         AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
             @Override
             public void deliverResult(HttpResponseEntity response) {
-                if (response.getStatusCode() == 200) {
+                if (response.getStatusCode() == HttpStatus.SC_OK) {
                     GeofenceStatusEntity entity = JSON.decode(response.getResponseBody(), GeofenceStatusEntity.class);
-                    int prevPlaceId = entity.getPlaceId();
-                    int prevTransitionType = entity.getTransitionType();
-                    int expired = entity.getExpired();
-                    int patternId = prevTransitionType * 10 + nextTransitionType;
-                    boolean isValidStateChange = AppUtils.isGeofenceNotification(prevTransitionType, nextTransitionType, prevPlaceId, nextPlaceId, expired);
+                    entity.setNextPlaceId(nextPlaceId);
+                    entity.setNextTransitionType(nextTransitionType);
+                    entity.setPrevTransitionPatternId(_prevTransitionTypeState);
+                    entity.setNextTransitionPatternId(entity.getPrevTransitionType() * 10 + entity.getNextTransitionType());
 
-                    // prevPlaceId=0の時はログ件数が0
-                    if (prevPlaceId > 0) {
-                        // 通知可能な移動ステータスの遷移
-                        if (isValidStateChange) {
-                            showDebugLog("通知可能なGeofence遷移:" + String.valueOf(patternId));
-                            // 通知許可なら通知実行
-                            if ((nextTransitionType == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
-                                (nextTransitionType == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
-                                (nextTransitionType == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
-                                showDebugLog("Geofence通知あり");
+                    boolean isNotified = AppUtils.isGeofenceNotification(entity);
 
-                                // TODO
-                                showDialog("判定処理つくらなー");
-                            } else {
-                                showDebugLog("Geofence通知設定なし");
-                            }
+                    // 通知可能な移動ステータスの遷移
+                    if (isNotified) {
+                        showDebugLog("通知可能なGeofence遷移:" + String.valueOf(entity.getNextTransitionPatternId()));
+                        // 通知許可なら通知実行
+                        if ((entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                            (entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
+                            (entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
+                            showDebugLog("Geofence通知あり");
+
+                            // TODO
+                            showDialog("判定処理つくらなー");
                         } else {
-                            showDebugLog("通知不許可なGeofence遷移:" + String.valueOf(patternId));
+                            showDebugLog("Geofence通知設定なし");
                         }
+                    } else {
+                        showDebugLog("通知不許可なGeofence遷移:" + String.valueOf(entity.getNextTransitionPatternId()));
                     }
 
                     StringBuilder sb = new StringBuilder();
-                    sb.append(getLandMarkName(prevPlaceId))
-                        .append("(").append(AppUtils.getGeofenceStatus(prevTransitionType)).append(")")
+                    sb.append(getLandMarkName(entity.getPrevPlaceId()))
+                        .append("(").append(AppUtils.getGeofenceStatus(entity.getPrevTransitionType())).append(")")
                         .append("→")
                         .append(getLandMarkName(nextPlaceId))
-                        .append("(").append(AppUtils.getGeofenceStatus(nextTransitionType)).append(")")
-                        .append(" ").append(isValidStateChange ? "OKパターン" : "NGパターン");
+                        .append("(").append(AppUtils.getGeofenceStatus(entity.getNextTransitionType())).append(")")
+                        .append(" ").append(isNotified ? "OKパターン" : "NGパターン");
 
                     showGeofenceLog(sb.toString());
                     writeGeofenceLog(nextPlaceId, nextTransitionType);
+                    _prevTransitionTypeState = entity.getNextTransitionPatternId();
                 }
             }
         };
@@ -273,7 +272,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public String getLandMarkName(int placeId) {
-        String landmarkName = "";
+        String landmarkName = "不明";
         for (GeofenceParcelable geofence : _geofenceList) {
             if (placeId == geofence.getId()) {
                 landmarkName = geofence.getLandmark();
