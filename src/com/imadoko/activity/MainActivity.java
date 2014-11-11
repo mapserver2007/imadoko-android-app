@@ -26,6 +26,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
@@ -57,7 +58,6 @@ import com.imadoko.util.AppUtils;
  * @since 2014/09/06
  */
 public class MainActivity extends FragmentActivity {
-
     private ConnectionReceiver _receiver;
     private TextView _connectionStatus;
     private TextView _debugLog;
@@ -74,6 +74,7 @@ public class MainActivity extends FragmentActivity {
     private ArrayList<GeofenceParcelable> _geofenceList;
     private String _userName;
     private int _prevTransitionTypeState;
+    private Vibrator _vibrator;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -104,6 +105,7 @@ public class MainActivity extends FragmentActivity {
                 res.getDrawable(R.drawable.connecting6),
                 res.getDrawable(R.drawable.connecting7),
                 res.getDrawable(R.drawable.connecting8) };
+        _vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
         findViewById(R.id.start_button).setOnClickListener(
                 new View.OnClickListener() {
@@ -122,6 +124,11 @@ public class MainActivity extends FragmentActivity {
                         stopService(CONNECTION.APPLICATION_STOP.toString());
                     }
                 });
+
+        // TODO
+        // 例のメモリクリーン後にアクティビティがアレになる件はやはりActivityは死ぬけどServiceは
+        // 生きてる。WSは死んでるが、Geofenceは生きていた。
+        // 一旦Serviceを殺して再起動するしかなさそうだが、Serviceは即死しないのがやっかい。無限ループ使うしかないか？
 
         startService(CONNECTION.APPLICATION_CREATE.toString());
         showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
@@ -146,6 +153,9 @@ public class MainActivity extends FragmentActivity {
     public void onDestroy() {
         super.onDestroy();
         stopService(CONNECTION.APPLICATION_DESTROY.toString());
+        if (_vibrator != null) {
+            _vibrator.cancel();
+        }
         endConnectingImage();
     }
 
@@ -214,8 +224,8 @@ public class MainActivity extends FragmentActivity {
                     entity.setNextTransitionType(nextTransitionType);
                     entity.setPrevTransitionPatternId(_prevTransitionTypeState);
                     entity.setNextTransitionPatternId(entity.getPrevTransitionType() * 10 + entity.getNextTransitionType());
-
                     boolean isNotified = AppUtils.isGeofenceNotification(entity);
+                    _vibrator.vibrate(AppConstants.VABRATION_TIME);
 
                     // 通知可能な移動ステータスの遷移
                     if (isNotified) {

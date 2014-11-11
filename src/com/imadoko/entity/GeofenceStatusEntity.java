@@ -60,22 +60,6 @@ public class GeofenceStatusEntity {
     }
 
     /**
-     * 移動ステータスを返却する
-     * @return 移動ステータス
-     */
-    public int getNextTransitionType() {
-        return _nextTransitionType;
-    }
-
-    /**
-     * 移動ステータスを設定する
-     * @param nextTransitionType 移動ステータス
-     */
-    public void setNextTransitionType(int nextTransitionType) {
-        _nextTransitionType = nextTransitionType;
-    }
-
-    /**
      * 前回の移動ステータスを返却する
      * @return 前回の移動ステータス
      */
@@ -89,6 +73,22 @@ public class GeofenceStatusEntity {
      */
     public void setPrevTransitionType(int prevTransitionType) {
         _prevTransitionType = prevTransitionType;
+    }
+
+    /**
+     * 移動ステータスを返却する
+     * @return 移動ステータス
+     */
+    public int getNextTransitionType() {
+        return _nextTransitionType;
+    }
+
+    /**
+     * 移動ステータスを設定する
+     * @param nextTransitionType 移動ステータス
+     */
+    public void setNextTransitionType(int nextTransitionType) {
+        _nextTransitionType = nextTransitionType;
     }
 
     /**
