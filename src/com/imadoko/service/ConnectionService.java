@@ -39,12 +39,11 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationStatusCodes;
 import com.imadoko.activity.MainActivity;
 import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceParcelable;
-import com.imadoko.entity.WebSocketResponseEntity;
+import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
 
@@ -57,13 +56,12 @@ public class ConnectionService extends Service {
     private WebSocketClient _ws;
     private String _authKey;
     private ArrayList<GeofenceParcelable> _geofenceList;
-    private LocationRequest _locationRequest;
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
     private LocationClient.OnAddGeofencesResultListener _onAddGeofencesResultListener;
     private LocationClient.OnRemoveGeofencesResultListener _onRemoveGeofencesByRequestIdsResult;
-    private WebSocketResponseEntity _responseEntity;
+    private WebSocketEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
     private int _recconectCount;
@@ -117,11 +115,6 @@ public class ConnectionService extends Service {
      * LocationClientを起動する
      */
     private void createLocationManager() {
-        _locationRequest = LocationRequest.create();
-        _locationRequest.setInterval(10000);
-        _locationRequest.setFastestInterval(3000);
-        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
         /**
          * 接続時・切断時のコールバック
          */
@@ -332,7 +325,7 @@ public class ConnectionService extends Service {
 
             @Override
             public void onMessage(final String jsonStr) {
-                _responseEntity = JSON.decode(jsonStr, WebSocketResponseEntity.class);
+                _responseEntity = JSON.decode(jsonStr, WebSocketEntity.class);
                 if (!_authKey.equals(_responseEntity.getAuthKey())) {
                     Log.d(AppConstants.TAG_WEBSOCKET, "auth error at getLocation");
                     return;
@@ -342,10 +335,8 @@ public class ConnectionService extends Service {
                     @Override
                     public void run() {
                         if (_locationClient.isConnected()) {
-                            Location location = _locationClient
-                                    .getLastLocation();
+                            Location location = _locationClient.getLastLocation();
                             if (location != null) {
-                                _responseEntity.setRequestId("send_request_browser");
                                 _responseEntity.setLng(String.valueOf(location.getLongitude()));
                                 _responseEntity.setLat(String.valueOf(location.getLatitude()));
                                 sendBroadcast(CONNECTION.LOCATION_OK);
