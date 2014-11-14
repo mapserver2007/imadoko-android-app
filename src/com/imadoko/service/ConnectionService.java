@@ -259,6 +259,7 @@ public class ConnectionService extends Service {
 
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(AppConstants.WEBSOCKET_AUTHKEY_HEADER, _authKey);
+        headers.put(AppConstants.WEBSOCKET_APPLICATION_TYPE_HEADER, AppConstants.APPLICATION_TYPE);
 
         _ws = new WebSocketClient(uri, new Draft_17(), headers, 3000) {
             @Override

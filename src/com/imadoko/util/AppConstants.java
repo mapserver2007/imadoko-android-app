@@ -19,28 +19,30 @@ public class AppConstants {
     public static final String ACTION = "com.imadoko.app.MainActivity";
 
     /** WebSocket/REST系 */
-    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
-    public static final String AUTHSALT_URL = "http://imadoko-node-server.herokuapp.com/salt";
-    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
-    public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
-    public static final String GEOFENCE_DATA_URL = "http://imadoko-node-server.herokuapp.com/geofence/data";
-    public static final String GEOFENCE_LOG_URL = "http://imadoko-node-server.herokuapp.com/geofence/log";
-    public static final String GEOFENCE_STATUS_URL = "http://imadoko-node-server.herokuapp.com/geofence/status";
-    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
-//    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
-//    public static final String AUTHSALT_URL = "http://192.168.0.30:9224/salt";
-//    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
-//    public static final String GEOFENCE_DATA_URL = "http://192.168.0.30:9224/geofence/data";
-//    public static final String GEOFENCE_LOG_URL = "http://192.168.0.30:9224/geofence/log";
-//    public static final String GEOFENCE_STATUS_URL = "http://192.168.0.30:9224/geofence/status";
-//    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
+//    public static final String WEBSOCKET_SERVER_URI = "ws://imadoko-node-server.herokuapp.com";
+//    public static final String AUTHSALT_URL = "http://imadoko-node-server.herokuapp.com/salt";
+//    public static final String AUTH_URL = "http://imadoko-node-server.herokuapp.com/auth";
+//    public static final String MASTER_GEOFENCE_URL = "http://imadoko-node-server.herokuapp.com/master/geofence";
+//    public static final String GEOFENCE_DATA_URL = "http://imadoko-node-server.herokuapp.com/geofence/data";
+//    public static final String GEOFENCE_LOG_URL = "http://imadoko-node-server.herokuapp.com/geofence/log";
+//    public static final String GEOFENCE_STATUS_URL = "http://imadoko-node-server.herokuapp.com/geofence/status";
+//    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
+    public static final String WEBSOCKET_SERVER_URI = "ws://192.168.0.30:9224";
+    public static final String AUTHSALT_URL = "http://192.168.0.30:9224/salt";
+    public static final String AUTH_URL = "http://192.168.0.30:9224/auth";
+    public static final String GEOFENCE_DATA_URL = "http://192.168.0.30:9224/geofence/data";
+    public static final String GEOFENCE_LOG_URL = "http://192.168.0.30:9224/geofence/log";
+    public static final String GEOFENCE_STATUS_URL = "http://192.168.0.30:9224/geofence/status";
+    public static final String REGISTER_USERNAME_URL = "http://192.168.0.30:9224/register/username";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
+    public static final String WEBSOCKET_APPLICATION_TYPE_HEADER = "X-Imadoko-ApplicationType";
     public static final int SERVICE_CLOSE_CODE = 9999;
     public static final int TIMER_INTERVAL = 15000;
     public static final int FAST_RECCONECT_MAX_NUM = 10;
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
+    public static final String APPLICATION_TYPE = "1";
 
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;
