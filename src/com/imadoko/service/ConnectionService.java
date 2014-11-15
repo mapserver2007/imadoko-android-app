@@ -1,7 +1,6 @@
 package com.imadoko.service;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,10 +9,14 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.net.ssl.SSLContext;
+
 import net.arnx.jsonic.JSON;
 
 import org.java_websocket.WebSocket;
+import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.client.WebSocketClient.WebSocketClientFactory;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.framing.Framedata.Opcode;
@@ -46,6 +49,7 @@ import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
+import com.imadoko.util.AppUtils;
 
 /**
  * ConnectionService
@@ -84,7 +88,7 @@ public class ConnectionService extends Service {
         stopForeground(true);
         removeGeofence();
         if (_ws != null) {
-            _ws.getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
+            _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
         }
         if (_locationClient != null) {
@@ -250,9 +254,15 @@ public class ConnectionService extends Service {
         }
 
         URI uri;
+        WebSocketClientFactory webSocketClientFactory = null;
         try {
             uri = new URI(AppConstants.WEBSOCKET_SERVER_URI);
-        } catch (URISyntaxException e) {
+            if (AppConstants.ENV_DEV) {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, AppUtils.getTrustAllCerts(), null);
+                webSocketClientFactory = new DefaultSSLWebSocketClientFactory(sslContext);
+            }
+        } catch (Throwable e) {
             sendBroadcast(CONNECTION.DISCONNECT);
             return;
         }
@@ -279,7 +289,7 @@ public class ConnectionService extends Service {
                     @Override
                     public void run() {
                         if (_heartbeatPool.size() > 2) {
-                            getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
+                            getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
                             return;
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
@@ -297,7 +307,7 @@ public class ConnectionService extends Service {
                 _heartbeatTimer.cancel();
 
                 if (isServiceRunning(ConnectionService.class)) {
-                    if (code != AppConstants.SERVICE_CLOSE_CODE) {
+                    if (code != AppConstants.SERVICE_CLOSE_CODE) { // サーバからの切断
                         _heartbeatPool = new LinkedList<Long>();
                         handler.postDelayed(
                             new Runnable() {
@@ -310,7 +320,6 @@ public class ConnectionService extends Service {
                             _recconectCount > AppConstants.FAST_RECCONECT_MAX_NUM ? AppConstants.RECONNECT_INTERVAL
                                     : AppConstants.RECOONECT_FAST_INTRERVAL);
                     } else {
-                        // サーバからの接続が切断された場合
                         sendBroadcast(CONNECTION.DISCONNECT);
                     }
                 } else {
@@ -321,7 +330,7 @@ public class ConnectionService extends Service {
 
             @Override
             public void onError(Exception e) {
-                getConnection().closeConnection(AppConstants.SERVICE_CLOSE_CODE, null);
+                getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             }
 
             @Override
@@ -356,6 +365,10 @@ public class ConnectionService extends Service {
                 sendBroadcast(CONNECTION.RECEIVE_PONG, false);
             }
         };
+
+        if (AppConstants.ENV_DEV) {
+            _ws.setWebSocketFactory(webSocketClientFactory);
+        }
 
         _ws.connect();
     }
