@@ -133,15 +133,10 @@ public class HttpClient {
         String errorMessage = null;
         try {
             SSLSocketFactory socketFactory;
-            if (AppConstants.ENV_DEV) {
-                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                trustStore.load(null, null);
-                socketFactory = new CustomSSLSocketFactory(trustStore);
-                socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            } else {
-                socketFactory = SSLSocketFactory.getSocketFactory();
-                socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            }
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(null, null);
+            socketFactory = new CustomSSLSocketFactory(trustStore);
+            socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
             // HTTPスキーマ設定
             SchemeRegistry scheme = new SchemeRegistry();

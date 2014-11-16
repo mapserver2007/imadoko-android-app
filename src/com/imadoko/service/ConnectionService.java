@@ -1,6 +1,7 @@
 package com.imadoko.service;
 
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -257,11 +258,9 @@ public class ConnectionService extends Service {
         WebSocketClientFactory webSocketClientFactory = null;
         try {
             uri = new URI(AppConstants.WEBSOCKET_SERVER_URI);
-            if (AppConstants.ENV_DEV) {
-                SSLContext sslContext = SSLContext.getInstance("TLS");
-                sslContext.init(null, AppUtils.getTrustAllCerts(), null);
-                webSocketClientFactory = new DefaultSSLWebSocketClientFactory(sslContext);
-            }
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, AppUtils.getTrustAllCerts(), SecureRandom.getInstance("SHA1PRNG"));
+            webSocketClientFactory = new DefaultSSLWebSocketClientFactory(sslContext);
         } catch (Throwable e) {
             sendBroadcast(CONNECTION.DISCONNECT);
             return;
@@ -366,10 +365,7 @@ public class ConnectionService extends Service {
             }
         };
 
-        if (AppConstants.ENV_DEV) {
-            _ws.setWebSocketFactory(webSocketClientFactory);
-        }
-
+        _ws.setWebSocketFactory(webSocketClientFactory);
         _ws.connect();
     }
 

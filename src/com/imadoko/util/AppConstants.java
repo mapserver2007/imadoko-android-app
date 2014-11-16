@@ -19,16 +19,14 @@ public class AppConstants {
     public static final String ACTION = "com.imadoko.app.MainActivity";
 
     /** WebSocket/REST系 */
-    public static final boolean ENV_DEV = false;
-    public static final String WEBSOCKET_SERVER_URI  = "ws://imadoko-node-server.herokuapp.com";
-    public static final String AUTHSALT_URL          = "http://imadoko-node-server.herokuapp.com/salt";
-    public static final String AUTH_URL              = "http://imadoko-node-server.herokuapp.com/auth";
-    public static final String MASTER_GEOFENCE_URL   = "http://imadoko-node-server.herokuapp.com/master/geofence";
-    public static final String GEOFENCE_DATA_URL     = "http://imadoko-node-server.herokuapp.com/geofence/data";
-    public static final String GEOFENCE_LOG_URL      = "http://imadoko-node-server.herokuapp.com/geofence/log";
-    public static final String GEOFENCE_STATUS_URL   = "http://imadoko-node-server.herokuapp.com/geofence/status";
-    public static final String REGISTER_USERNAME_URL = "http://imadoko-node-server.herokuapp.com/register/username";
-//    public static final boolean ENV_DEV = true;
+    public static final String WEBSOCKET_SERVER_URI  = "wss://imadoko-node-server.herokuapp.com";
+    public static final String AUTHSALT_URL          = "https://imadoko-node-server.herokuapp.com/salt";
+    public static final String AUTH_URL              = "https://imadoko-node-server.herokuapp.com/auth";
+    public static final String MASTER_GEOFENCE_URL   = "https://imadoko-node-server.herokuapp.com/master/geofence";
+    public static final String GEOFENCE_DATA_URL     = "https://imadoko-node-server.herokuapp.com/geofence/data";
+    public static final String GEOFENCE_LOG_URL      = "https://imadoko-node-server.herokuapp.com/geofence/log";
+    public static final String GEOFENCE_STATUS_URL   = "https://imadoko-node-server.herokuapp.com/geofence/status";
+    public static final String REGISTER_USERNAME_URL = "https://imadoko-node-server.herokuapp.com/register/username";
 //    public static final String WEBSOCKET_SERVER_URI  = "wss://192.168.0.30:9224";
 //    public static final String AUTHSALT_URL          = "https://192.168.0.30:9224/salt";
 //    public static final String AUTH_URL              = "https://192.168.0.30:9224/auth";
