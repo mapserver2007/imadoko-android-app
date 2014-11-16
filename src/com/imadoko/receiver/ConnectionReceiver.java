@@ -33,8 +33,11 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.showDebugLog(status.toString());
             break;
         case RECONNECT:
-            activity.onReConnecting(status.toString());
+            activity.onReConnect(status.toString());
             activity.showDebugLog(status.toString());
+            break;
+        case RECONNECTING:
+            activity.onReConnecting(status.toString());
             break;
         case SEND_PING:
         case GEOFENCE_ERROR:

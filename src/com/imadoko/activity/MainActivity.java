@@ -196,9 +196,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onReConnecting(String message) {
-        connectFailureImage();
-        changeButton(CONNECTION.CONNECTING);
-        _connectionStatus.setText(message);
+        if (_connectingTimer == null) {
+            onConnecting(message);
+        }
     }
 
     public void onConnecting(String message) {
@@ -251,7 +251,8 @@ public class MainActivity extends FragmentActivity {
                         .append("→")
                         .append(getLandMarkName(nextPlaceId))
                         .append("(").append(AppUtils.getGeofenceStatus(entity.getNextTransitionType())).append(")")
-                        .append(" ").append(isNotified ? "OKパターン" : "NGパターン");
+                        .append(" ").append(isNotified ? "OK" : "NG")
+                        .append("/").append(String.valueOf(AppUtils.getLocationDistance(entity)) + "m");
 
                     showGeofenceLog(sb.toString());
                     writeGeofenceLog(nextPlaceId, nextTransitionType);
