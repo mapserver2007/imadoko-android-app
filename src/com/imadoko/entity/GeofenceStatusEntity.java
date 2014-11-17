@@ -26,14 +26,6 @@ public class GeofenceStatusEntity {
     private int _prevTransitionPatternId;
     /** 今愛の移動パターン */
     private int _nextTransitionPatternId;
-    /** Geofence地点経度 */
-    private double _landmarkLng;
-    /** Geofence地点緯度 */
-    private double _landmarkLat;
-    /** 現在の経度 */
-    private double _currentLng;
-    /** 現在の緯度 */
-    private double _currentLat;
 
     /**
      * 前回の地点IDを返却する
@@ -193,69 +185,5 @@ public class GeofenceStatusEntity {
      */
     public void setNextTransitionPatternId(int nextTransitionPatternId) {
         _nextTransitionPatternId = nextTransitionPatternId;
-    }
-
-    /**
-     * Geofence地点経度を返却する
-     * @return Geofence地点経度
-     */
-    public double getLandmarkLng() {
-        return _landmarkLng;
-    }
-
-    /**
-     * Geofence地点経度を設定する
-     * @param _landmarkLng Geofence地点経度
-     */
-    public void setLandmarkLng(double _landmarkLng) {
-        this._landmarkLng = _landmarkLng;
-    }
-
-    /**
-     * Geofence地点緯度を返却する
-     * @return Geofence地点緯度
-     */
-    public double getLandmarkLat() {
-        return _landmarkLat;
-    }
-
-    /**
-     * Geofence地点緯度を設定する
-     * @param _landmarkLat Geofence地点緯度
-     */
-    public void setLandmarkLat(double _landmarkLat) {
-        this._landmarkLat = _landmarkLat;
-    }
-
-    /**
-     * 現在の経度を返却する
-     * @return 現在の経度
-     */
-    public double getCurrentLng() {
-        return _currentLng;
-    }
-
-    /**
-     * 現在の経度を設定する
-     * @param _currentLng 現在の経度
-     */
-    public void setCurrentLng(double _currentLng) {
-        this._currentLng = _currentLng;
-    }
-
-    /**
-     * 現在の緯度を返却する
-     * @return 現在の緯度
-     */
-    public double getCurrentLat() {
-        return _currentLat;
-    }
-
-    /**
-     * 現在の緯度を設定する
-     * @param _currentLat 現在の緯度
-     */
-    public void setCurrentLat(double _currentLat) {
-        this._currentLat = _currentLat;
     }
 }

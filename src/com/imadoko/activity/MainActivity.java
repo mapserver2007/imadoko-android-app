@@ -251,8 +251,7 @@ public class MainActivity extends FragmentActivity {
                         .append("→")
                         .append(getLandMarkName(nextPlaceId))
                         .append("(").append(AppUtils.getGeofenceStatus(entity.getNextTransitionType())).append(")")
-                        .append(" ").append(isNotified ? "OK" : "NG")
-                        .append("/").append(String.valueOf(AppUtils.getLocationDistance(entity)) + "m");
+                        .append(" ").append(isNotified ? "OK" : "NG");
 
                     showGeofenceLog(sb.toString());
                     writeGeofenceLog(nextPlaceId, nextTransitionType);

@@ -10,8 +10,6 @@ public class WebSocketEntity {
     protected String _authKey;
     /** リクエストID */
     protected String _requestId;
-    /** 送信元ID */
-    private String _senderId;
     /** 経度 */
     private String _lng;
     /** 緯度 */
@@ -47,22 +45,6 @@ public class WebSocketEntity {
      */
     public String getRequestId() {
         return _requestId;
-    }
-
-    /**
-     * 送信元IDを返却する
-     * @return 送信元ID
-     */
-    public String getSenderId() {
-        return _senderId;
-    }
-
-    /**
-     * 送信元IDを設定する
-     * @param senderId 送信元ID
-     */
-    public void setSenderId(String senderId) {
-        _senderId = senderId;
     }
 
     /**

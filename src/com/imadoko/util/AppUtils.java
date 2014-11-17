@@ -134,22 +134,6 @@ public class AppUtils {
         return status;
     }
 
-    public static long getLocationDistance(GeofenceStatusEntity entity) {
-        // 地球の半径
-        final double earchRadius = 6378.137;
-        // 角度をラジアンに変換
-        double radLat = Math.toRadians(Math.abs(entity.getLandmarkLat() - entity.getCurrentLat()));
-        double radLng = Math.toRadians(Math.abs(entity.getLandmarkLng() - entity.getCurrentLng()));
-        // 南北の距離
-        double nsDist = radLat * earchRadius;
-        // 東西の距離
-        double ewDist = Math.cos(Math.toRadians(entity.getCurrentLat())) * radLng * earchRadius;
-        // 距離
-        double dist = Math.sqrt(Math.pow(nsDist, 2) + Math.pow(ewDist, 2));
-
-        return Math.round(dist);
-    }
-
     public static TrustManager[] getTrustAllCerts() {
         return new TrustManager[]{new X509TrustManager() {
             @Override
