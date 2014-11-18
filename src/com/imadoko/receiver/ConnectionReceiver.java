@@ -41,6 +41,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
             break;
         case SEND_PING:
         case GEOFENCE_ERROR:
+        case LOCATION_UPDATE:
             // ログは更新するが画面上のステータスは更新しない
             activity.showDebugLog(status.toString());
             break;

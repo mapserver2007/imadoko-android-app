@@ -43,6 +43,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationStatusCodes;
 import com.imadoko.activity.MainActivity;
 import com.imadoko.app.R;
@@ -66,6 +68,8 @@ public class ConnectionService extends Service {
     private GooglePlayServicesClient.OnConnectionFailedListener _onConnectionFailedListener;
     private LocationClient.OnAddGeofencesResultListener _onAddGeofencesResultListener;
     private LocationClient.OnRemoveGeofencesResultListener _onRemoveGeofencesByRequestIdsResult;
+    private LocationRequest _locationRequest;
+    private LocationListener _locationListener;
     private WebSocketEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
@@ -87,7 +91,6 @@ public class ConnectionService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopForeground(true);
-        removeGeofence();
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
@@ -126,13 +129,14 @@ public class ConnectionService extends Service {
         _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
             @Override
             public void onConnected(Bundle bundle) {
-                Log.d(AppConstants.TAG_LOCATION, "location on connected");
+                updateLocationRequest(AppConstants.SHORT_LOCATION_INTERVAL, AppConstants.LONG_LOCATION_INTERNAL);
                 addGeofence();
             }
 
             @Override
             public void onDisconnected() {
-                Log.d(AppConstants.TAG_LOCATION, "location on disconnected");
+                removeLocationRequest();
+                removeGeofence();
             }
         };
 
@@ -192,8 +196,27 @@ public class ConnectionService extends Service {
             }
         };
 
+        _locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                sendBroadcast(CONNECTION.LOCATION_UPDATE);
+            }
+        };
+
+        _locationRequest = LocationRequest.create();
+        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
+    }
+
+    private void updateLocationRequest(long shortInterval, long longInterval) {
+        _locationRequest.setInterval(shortInterval);
+        _locationRequest.setFastestInterval(longInterval);
+        _locationClient.requestLocationUpdates(_locationRequest, _locationListener);
+    }
+
+    private void removeLocationRequest() {
+        _locationClient.removeLocationUpdates(_locationListener);
     }
 
     private void addGeofence() {

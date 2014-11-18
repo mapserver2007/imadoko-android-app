@@ -42,6 +42,8 @@ public class AppConstants {
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
+    public static final long SHORT_LOCATION_INTERVAL = 120000L;
+    public static final long LONG_LOCATION_INTERNAL = 300000L;
     public static final String APPLICATION_TYPE = "1";
 
     /** Geofenceステータス */
@@ -99,6 +101,7 @@ public class AppConstants {
         SEND_PING("ping送信"),
         RECEIVE_PONG("ping受信"),
         RESTART("サービス再起動"),
+        LOCATION_UPDATE("位置情報更新"),
         LOCATION_OK("位置情報返却成功"),
         LOCATION_NG("位置情報取得失敗"),
         GEOFENCE_IN("周辺に進入"),
