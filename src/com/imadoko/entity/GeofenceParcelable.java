@@ -27,6 +27,8 @@ public class GeofenceParcelable implements Parcelable {
     private String _landmark;
     /** ユーザ名 */
     private String _username;
+    /** 位置情報許可 */
+    private int _permission;
 
     /**
      * 地点IDを返却する
@@ -172,11 +174,27 @@ public class GeofenceParcelable implements Parcelable {
         _username = username;
     }
 
+    /**
+     * 位置情報許可情報を返却する
+     * @return 位置情報許可情報
+     */
+    public int getPermission() {
+        return _permission;
+    }
+
+    /**
+     * 位置情報許可情報を設定する
+     * @param permission 位置情報許可情報
+     */
+    public void setPermission(int permission) {
+        _permission = permission;
+    }
+
     public GeofenceParcelable() {}
 
     public GeofenceParcelable(Parcel in) {
         String[] stringArray = new String[7];
-        int[] intArray = new int[2];
+        int[] intArray = new int[3];
         in.readStringArray(stringArray);
         in.readIntArray(intArray);
 
@@ -189,6 +207,7 @@ public class GeofenceParcelable implements Parcelable {
         _landmark = stringArray[5];
         _username = stringArray[6];
         _loiteringDelay = intArray[1];
+        _permission = intArray[2];
     }
 
     public static final Parcelable.Creator<GeofenceParcelable> CREATOR = new Parcelable.Creator<GeofenceParcelable>() {
@@ -214,7 +233,7 @@ public class GeofenceParcelable implements Parcelable {
             _requestId, _lng, _lat, _radius, _address, _landmark, _username
         });
         out.writeIntArray(new int[] {
-            _id, _loiteringDelay
+            _id, _loiteringDelay, _permission
         });
     }
 }

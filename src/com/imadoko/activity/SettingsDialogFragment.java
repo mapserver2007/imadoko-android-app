@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import com.imadoko.app.R;
@@ -17,21 +18,25 @@ public class SettingsDialogFragment extends DialogFragment {
     private Dialog _dialog;
     private View _layout;
     private String _userName;
+    private boolean _isLocationPermission;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.ErrorDialogTheme));
         ((EditText) _layout.findViewById(R.id.dialog_edittext)).setText(_userName);
+        ((CheckBox) _layout.findViewById(R.id.dialog_checkbox)).setChecked(_isLocationPermission);
 
         _dialog = builder
-            .setMessage("表示するユーザ名を入力")
+            .setMessage("imakodo設定")
             .setView(_layout)
             .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     EditText editText = (EditText) _layout.findViewById(R.id.dialog_edittext);
+                    CheckBox checkBox = (CheckBox) _layout.findViewById(R.id.dialog_checkbox);
                     String userName = ((SpannableStringBuilder) editText.getText()).toString();
-                    ((MainActivity) getActivity()).registerUserName(userName);
+                    boolean isLocationPermission = checkBox.isChecked();
+                    ((MainActivity) getActivity()).updateSetting(userName, isLocationPermission);
                     dialog.dismiss();
                 }
             })
@@ -63,5 +68,9 @@ public class SettingsDialogFragment extends DialogFragment {
 
     public void setUserName(String userName) {
         _userName = userName;
+    }
+
+    public void setPermissionLocation(boolean isPermissionLocation) {
+        _isLocationPermission = isPermissionLocation;
     }
 }

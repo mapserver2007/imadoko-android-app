@@ -26,14 +26,14 @@ public class AppConstants {
     public static final String GEOFENCE_DATA_URL     = "https://imadoko-node-server.herokuapp.com/geofence/data";
     public static final String GEOFENCE_LOG_URL      = "https://imadoko-node-server.herokuapp.com/geofence/log";
     public static final String GEOFENCE_STATUS_URL   = "https://imadoko-node-server.herokuapp.com/geofence/status";
-    public static final String REGISTER_USERNAME_URL = "https://imadoko-node-server.herokuapp.com/register/username";
+    public static final String UPDATE_SETTING_URL    = "https://imadoko-node-server.herokuapp.com/setting/update";
 //    public static final String WEBSOCKET_SERVER_URI  = "wss://192.168.0.30:9224";
 //    public static final String AUTHSALT_URL          = "https://192.168.0.30:9224/salt";
 //    public static final String AUTH_URL              = "https://192.168.0.30:9224/auth";
 //    public static final String GEOFENCE_DATA_URL     = "https://192.168.0.30:9224/geofence/data";
 //    public static final String GEOFENCE_LOG_URL      = "https://192.168.0.30:9224/geofence/log";
 //    public static final String GEOFENCE_STATUS_URL   = "https://192.168.0.30:9224/geofence/status";
-//    public static final String REGISTER_USERNAME_URL = "https://192.168.0.30:9224/register/username";
+//    public static final String UPDATE_SETTING_URL    = "https://192.168.0.30:9224/setting/update";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final String WEBSOCKET_APPLICATION_TYPE_HEADER = "X-Imadoko-ApplicationType";
     public static final int SERVICE_CLOSE_CODE = 1002;
@@ -57,6 +57,7 @@ public class AppConstants {
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";
     public static final String PARAM_USERNAME = "userName";
+    public static final String PARAM_LOCATION_PERMISSION = "locPermission";
     public static final String PARAM_GEOFENCE_ENTITY = "geofenceEntity";
     public static final String PARAM_PLACE_ID = "placeId";
     public static final String PARAM_TRANSITION_TYPE = "transitionType";
@@ -109,8 +110,8 @@ public class AppConstants {
         GEOFENCE_STAY("に滞在開始"),
         GEOFENCE_ERROR("ジオフェンスエラー"),
         SERVICE_DEAD("想定外のサービス停止"),
-        USERNAME_REGISTER_OK("ユーザ名登録成功"),
-        USERNAME_REGISTER_NG("ユーザ名登録失敗");
+        SETTING_OK("設定更新成功"),
+        SETTING_NG("設定更新失敗");
 
         private String status;
 

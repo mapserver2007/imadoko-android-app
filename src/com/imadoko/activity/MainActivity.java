@@ -71,8 +71,9 @@ public class MainActivity extends FragmentActivity {
     private Queue<String> _debugLogQueue;
     private Queue<String> _geofenceLogQueue;
     private String _authKey;
-    private ArrayList<GeofenceParcelable> _geofenceList;
     private String _userName;
+    private boolean _isLocationPermission;
+    private ArrayList<GeofenceParcelable> _geofenceList;
     private int _prevTransitionTypeState;
     private Vibrator _vibrator;
 
@@ -86,6 +87,7 @@ public class MainActivity extends FragmentActivity {
 
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _userName = intent.getStringExtra(AppConstants.PARAM_USERNAME);
+        _isLocationPermission = intent.getBooleanExtra(AppConstants.PARAM_LOCATION_PERMISSION, false);
         _geofenceList = bundle.getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
@@ -125,11 +127,6 @@ public class MainActivity extends FragmentActivity {
                     }
                 });
 
-        // TODO
-        // 例のメモリクリーン後にアクティビティがアレになる件はやはりActivityは死ぬけどServiceは
-        // 生きてる。WSは死んでるが、Geofenceは生きていた。
-        // 一旦Serviceを殺して再起動するしかなさそうだが、Serviceは即死しないのがやっかい。無限ループ使うしかないか？
-
         startService(CONNECTION.APPLICATION_CREATE.toString());
         showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
         setButtonEvent();
@@ -141,9 +138,10 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 SettingsDialogFragment dialog = new SettingsDialogFragment();
-                View layout = inflater.inflate(R.layout.dialog_username, (ViewGroup) findViewById(R.id.dialog_edittext));
+                View layout = inflater.inflate(R.layout.setting_dialog, (ViewGroup) findViewById(R.id.dialog_edittext));
                 dialog.setLayout(layout);
                 dialog.setUserName(_userName);
+                dialog.setPermissionLocation(_isLocationPermission);
                 dialog.show(getFragmentManager(), AppConstants.DIALOG_SETTINGS);
             }
         });
@@ -391,29 +389,31 @@ public class MainActivity extends FragmentActivity {
         _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
     }
 
-    public void onRegisterUserNameResult(int statusCode) {
+    public void onUpdateSetting(int statusCode, String userName, boolean isLocationPermission) {
         if (statusCode == HttpStatus.SC_OK) {
-            showDebugLog(CONNECTION.USERNAME_REGISTER_OK.toString());
-            Toast.makeText(this, CONNECTION.USERNAME_REGISTER_OK.toString(), Toast.LENGTH_LONG).show();
+            showDebugLog(CONNECTION.SETTING_OK.toString());
+            Toast.makeText(this, CONNECTION.SETTING_OK.toString(), Toast.LENGTH_LONG).show();
+            _userName = userName;
+            _isLocationPermission = isLocationPermission;
         } else {
-            showDebugLog(CONNECTION.USERNAME_REGISTER_NG.toString());
-            Toast.makeText(this, CONNECTION.USERNAME_REGISTER_NG.toString(), Toast.LENGTH_LONG).show();
+            showDebugLog(CONNECTION.SETTING_NG.toString());
+            Toast.makeText(this, CONNECTION.SETTING_NG.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public void registerUserName(String userName) {
-        _userName = userName;
+    public void updateSetting(final String userName, final boolean isLocationPermission) {
         HttpRequestEntity entity = new HttpRequestEntity();
-        entity.setUrl(AppConstants.REGISTER_USERNAME_URL);
+        entity.setUrl(AppConstants.UPDATE_SETTING_URL);
         Map<String, String> params = new HashMap<String, String>();
         params.put(AppConstants.PARAM_AUTH_KEY, _authKey);
-        params.put(AppConstants.PARAM_USERNAME, _userName);
+        params.put(AppConstants.PARAM_USERNAME, userName);
+        params.put(AppConstants.PARAM_LOCATION_PERMISSION, isLocationPermission ? "1" : "0");
         entity.setParams(params);
 
         AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
             @Override
             public void deliverResult(HttpResponseEntity response) {
-                onRegisterUserNameResult(response.getStatusCode());
+                onUpdateSetting(response.getStatusCode(), userName, isLocationPermission);
             }
         };
         loader.post();

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_layout"
+    android:orientation="vertical"
+    android:paddingLeft="10sp"
+    android:paddingRight="10sp"
+    android:paddingTop="5sp"
+    android:paddingBottom="5sp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView android:id="@+id/dialog_title1"
+        android:text="@string/dialog_title1_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    
+    <EditText android:id="@+id/dialog_edittext"
+        android:inputType="text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView android:id="@+id/dialog_title2"
+        android:text="@string/dialog_title2_text"
+        android:paddingTop="3sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    
+    <CheckBox android:id="@+id/dialog_checkbox"
+            android:text="@string/dialog_locpermission"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" /> 
+</LinearLayout>
