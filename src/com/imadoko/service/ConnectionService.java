@@ -83,14 +83,14 @@ public class ConnectionService extends Service {
         Log.d(AppConstants.TAG_SERVICE, "Service start");
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
-        createNotification();
-        startForeground(1, _notify.build());
+//        createNotification();
+//        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopForeground(true);
+//        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
@@ -114,7 +114,7 @@ public class ConnectionService extends Service {
         Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
-        createNotification();
+//        createNotification();
         createWebSocketConnection();
         return START_STICKY;
     }
@@ -204,7 +204,7 @@ public class ConnectionService extends Service {
         };
 
         _locationRequest = LocationRequest.create();
-        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
@@ -305,6 +305,9 @@ public class ConnectionService extends Service {
                     }
                 });
 
+                final FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
+                frame.setFin(true);
+
                 // HeartBaat処理
                 _heartbeatTimer = new Timer();
                 _heartbeatTimer.schedule(new TimerTask() {
@@ -315,8 +318,6 @@ public class ConnectionService extends Service {
                             return;
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
-                        FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
-                        frame.setFin(true);
                         _ws.getConnection().sendFrame(frame);
                         sendBroadcast(CONNECTION.SEND_PING, false);
                     }
