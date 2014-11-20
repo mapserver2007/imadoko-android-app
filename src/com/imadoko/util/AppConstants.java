@@ -56,6 +56,7 @@ public class AppConstants {
 
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";
+    public static final String PARAM_SALT_NAME = "name";
     public static final String PARAM_USERNAME = "userName";
     public static final String PARAM_LOCATION_PERMISSION = "locPermission";
     public static final String PARAM_GEOFENCE_ENTITY = "geofenceEntity";

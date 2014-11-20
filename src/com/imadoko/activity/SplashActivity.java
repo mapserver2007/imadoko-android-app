@@ -89,6 +89,9 @@ public class SplashActivity extends FragmentActivity {
     private void executeAuth() {
         HttpRequestEntity entity1 = new HttpRequestEntity();
         entity1.setUrl(AppConstants.AUTHSALT_URL);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(AppConstants.PARAM_SALT_NAME, "main");
+        entity1.setParams(params);
 
         AsyncHttpTaskLoader loader1 = new AsyncHttpTaskLoader(this, entity1) {
             @Override

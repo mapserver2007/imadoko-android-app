@@ -24,10 +24,8 @@ public class AppUtils {
         MessageDigest md;
         String authKey = "";
         try {
-            StringBuilder sb = new StringBuilder();
-            sb.append(imei).append(salt);
             md = MessageDigest.getInstance("SHA-1");
-            byte[] digest = md.digest(new String(sb).getBytes());
+            byte[] digest = md.digest(salt.getBytes());
             authKey = String.valueOf(Hex.encodeHex(digest));
         } catch (NoSuchAlgorithmException e) {
             Log.e(AppConstants.TAG_APPLICATION, e.getMessage());
