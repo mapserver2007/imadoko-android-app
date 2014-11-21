@@ -26,7 +26,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
@@ -75,7 +74,6 @@ public class MainActivity extends FragmentActivity {
     private boolean _isLocationPermission;
     private ArrayList<GeofenceParcelable> _geofenceList;
     private int _prevTransitionTypeState;
-    private Vibrator _vibrator;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,7 +105,6 @@ public class MainActivity extends FragmentActivity {
                 res.getDrawable(R.drawable.connecting6),
                 res.getDrawable(R.drawable.connecting7),
                 res.getDrawable(R.drawable.connecting8) };
-        _vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
         findViewById(R.id.start_button).setOnClickListener(
                 new View.OnClickListener() {
@@ -150,10 +147,6 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopService(CONNECTION.APPLICATION_DESTROY.toString());
-        if (_vibrator != null) {
-            _vibrator.cancel();
-        }
         endConnectingImage();
     }
 
@@ -223,7 +216,6 @@ public class MainActivity extends FragmentActivity {
                     entity.setPrevTransitionPatternId(_prevTransitionTypeState);
                     entity.setNextTransitionPatternId(entity.getPrevTransitionType() * 10 + entity.getNextTransitionType());
                     boolean isNotified = AppUtils.isGeofenceNotification(entity);
-                    _vibrator.vibrate(AppConstants.VABRATION_TIME);
 
                     // 通知可能な移動ステータスの遷移
                     if (isNotified) {

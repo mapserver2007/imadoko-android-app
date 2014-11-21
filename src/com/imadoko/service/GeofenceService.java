@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Vibrator;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.LocationClient;
@@ -64,6 +65,9 @@ public class GeofenceService extends IntentService {
             notifyIntent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
             notifyIntent.putExtra(AppConstants.TRANSITION_TYPE, transitionType);
             notifyIntent.putExtra(AppConstants.GEOFENCE_PLACE_ID, Integer.parseInt(geofence.getRequestId()));
+
+            Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+            vibrator.vibrate(AppConstants.VABRATION_TIME);
 
             sendBroadcast(notifyIntent);
         }

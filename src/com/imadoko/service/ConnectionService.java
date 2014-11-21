@@ -74,8 +74,6 @@ public class ConnectionService extends Service {
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
     private int _recconectCount;
-    private NotificationCompat.Builder _notify;
-    private NotificationManager _manager;
 
     @Override
     public void onCreate() {
@@ -83,14 +81,11 @@ public class ConnectionService extends Service {
         Log.d(AppConstants.TAG_SERVICE, "Service start");
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
-//        createNotification();
-//        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
@@ -114,7 +109,6 @@ public class ConnectionService extends Service {
         Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
-//        createNotification();
         createWebSocketConnection();
         return START_STICKY;
     }
@@ -245,27 +239,6 @@ public class ConnectionService extends Service {
         _locationClient.removeGeofences(requestIdList, _onRemoveGeofencesByRequestIdsResult);
     }
 
-    private void createNotification() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-        _notify = new NotificationCompat.Builder(this)
-            .setPriority(Notification.PRIORITY_HIGH)
-            .setContentTitle("imadoko")
-            .setContentText("タップしてアプリケーションを表示する")
-            .setSmallIcon(R.drawable.ic_statusbar)
-            .setContentIntent(contentIntent)
-            .setOngoing(true);
-
-        _manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    }
-
-    private void notification(String message) {
-        _manager.notify(1, _notify
-                .setContentText(message)
-                .setTicker(message)
-                .build());
-    }
-
     /**
      * WebSocket接続開始
      */
@@ -319,7 +292,7 @@ public class ConnectionService extends Service {
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
                         _ws.getConnection().sendFrame(frame);
-                        sendBroadcast(CONNECTION.SEND_PING, false);
+                        sendBroadcast(CONNECTION.SEND_PING);
                     }
                 }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
             }
@@ -385,7 +358,7 @@ public class ConnectionService extends Service {
             @Override
             public void onWebsocketPing(WebSocket conn, Framedata f) {
                 _heartbeatPool.remove();
-                sendBroadcast(CONNECTION.RECEIVE_PONG, false);
+                sendBroadcast(CONNECTION.RECEIVE_PONG);
             }
         };
 
@@ -401,18 +374,6 @@ public class ConnectionService extends Service {
         Intent intent = new Intent(AppConstants.ACTION);
         intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
         sendBroadcast(intent);
-    }
-
-    /**
-     * BroadcastReceiverへステータスを送信
-     * @param status 接続ステータス
-     * @param 通知を有効にするかどうか
-     */
-    private void sendBroadcast(CONNECTION status, boolean enableNotification) {
-        if (enableNotification) {
-            notification(status.toString());
-        }
-        sendBroadcast(status);
     }
 
     /**
