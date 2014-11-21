@@ -106,7 +106,11 @@ public class ConnectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(AppConstants.TAG_SERVICE, "onStartCommand");
+        if (intent == null) {
+            // 極稀にintentがNULLになるケースがある
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         createWebSocketConnection();

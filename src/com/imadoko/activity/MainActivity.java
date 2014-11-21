@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -20,6 +22,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -74,6 +78,7 @@ public class MainActivity extends FragmentActivity {
     private boolean _isLocationPermission;
     private ArrayList<GeofenceParcelable> _geofenceList;
     private int _prevTransitionTypeState;
+    private SharedPreferences _pref;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -110,7 +115,6 @@ public class MainActivity extends FragmentActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
                         startService(CONNECTION.APPLICATION_CREATE.toString());
                     }
                 });
@@ -119,13 +123,11 @@ public class MainActivity extends FragmentActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        showDebugLog(CONNECTION.APPLICATION_STOP.toString());
                         stopService(CONNECTION.APPLICATION_STOP.toString());
                     }
                 });
 
         startService(CONNECTION.APPLICATION_CREATE.toString());
-        showDebugLog(CONNECTION.APPLICATION_CREATE.toString());
         setButtonEvent();
     }
 
@@ -153,6 +155,11 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onStart() {
         super.onStart();
+        if (_pref == null) {
+            _pref = getSharedPreferences(AppConstants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
+        }
+        loadDebugLogFromSharedPref();
+        loadGeofenceLogFromSharedPref();
         showDebugLog(CONNECTION.APPLICATION_START.toString());
         if (!isServiceRunning(this, ConnectionService.class)) {
             showDebugLog(CONNECTION.SERVICE_DEAD.toString());
@@ -370,6 +377,15 @@ public class MainActivity extends FragmentActivity {
         }
         _debugLogQueue.add(datetime + ": " + message);
         _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
+
+        JSONArray jsonArray = new JSONArray();
+        for (String log : _debugLogQueue) {
+            jsonArray.put(log);
+        }
+
+        Editor editor = _pref.edit();
+        editor.putString(AppConstants.PREF_MAIN_LOG, jsonArray.toString());
+        editor.apply();
     }
 
     private void showGeofenceLog(String message) {
@@ -379,6 +395,37 @@ public class MainActivity extends FragmentActivity {
         }
         _geofenceLogQueue.add(datetime + ": " + message);
         _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
+
+        JSONArray jsonArray = new JSONArray();
+        for (String log : _geofenceLogQueue) {
+            jsonArray.put(log);
+        }
+
+        Editor editor = _pref.edit();
+        editor.putString(AppConstants.PREF_GEOFENCE_LOG, jsonArray.toString());
+        editor.apply();
+    }
+
+    private void loadDebugLogFromSharedPref() {
+        JSONArray jsonArray;
+        try {
+            jsonArray = new JSONArray(_pref.getString(AppConstants.PREF_MAIN_LOG, ""));
+            for (int i = 0; i < jsonArray.length(); i++) {
+                _debugLogQueue.add(jsonArray.getString(i));
+            }
+            _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
+        } catch (JSONException ignore) {}
+    }
+
+    private void loadGeofenceLogFromSharedPref() {
+        JSONArray jsonArray;
+        try {
+            jsonArray = new JSONArray(_pref.getString(AppConstants.PREF_GEOFENCE_LOG, ""));
+            for (int i = 0; i < jsonArray.length(); i++) {
+                _geofenceLogQueue.add(jsonArray.getString(i));
+            }
+            _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
+        } catch (JSONException ignore) {}
     }
 
     public void onUpdateSetting(int statusCode, String userName, boolean isLocationPermission) {

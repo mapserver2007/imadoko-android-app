@@ -12,6 +12,9 @@ public class AppConstants {
     public static final String TRIGGERED_LONGITUDE = "triggeredLongitude";
     public static final String TRIGGERED_LATITUDE = "triggeredLatitude";
     public static final String GEOFENCE_PLACE_ID = "geofencePlaceId";
+    public static final String SHARED_PREFERENCES_KEY = "myPref";
+    public static final String PREF_MAIN_LOG = "mainLog";
+    public static final String PREF_GEOFENCE_LOG = "geofenceLog";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
     public static final int GEOFENCE_LOG_MAX_SIZE = 3;
 
