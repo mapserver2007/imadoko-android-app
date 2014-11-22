@@ -27,7 +27,6 @@ import org.java_websocket.handshake.ServerHandshake;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -74,18 +73,21 @@ public class ConnectionService extends Service {
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
     private int _recconectCount;
+    private NotificationCompat.Builder _notify;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(AppConstants.TAG_SERVICE, "Service start");
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
+        createNotification();
+        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
@@ -96,7 +98,6 @@ public class ConnectionService extends Service {
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
         }
-        Log.d(AppConstants.TAG_SERVICE, "Service end");
     }
 
     @Override
@@ -106,13 +107,9 @@ public class ConnectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null) {
-            // 極稀にintentがNULLになるケースがある
-            stopSelf();
-            return START_NOT_STICKY;
-        }
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
+        createNotification();
         createWebSocketConnection();
         return START_STICKY;
     }
@@ -202,7 +199,7 @@ public class ConnectionService extends Service {
         };
 
         _locationRequest = LocationRequest.create();
-        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
@@ -241,6 +238,18 @@ public class ConnectionService extends Service {
             requestIdList.add(entity.getRequestId());
         }
         _locationClient.removeGeofences(requestIdList, _onRemoveGeofencesByRequestIdsResult);
+    }
+
+    private void createNotification() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        _notify = new NotificationCompat.Builder(this)
+            .setPriority(Notification.PRIORITY_HIGH)
+            .setContentTitle("imadoko")
+            .setContentText("タップしてアプリケーションを表示する")
+            .setSmallIcon(R.drawable.ic_statusbar)
+            .setContentIntent(contentIntent)
+            .setOngoing(true);
     }
 
     /**
@@ -282,9 +291,6 @@ public class ConnectionService extends Service {
                     }
                 });
 
-                final FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
-                frame.setFin(true);
-
                 // HeartBaat処理
                 _heartbeatTimer = new Timer();
                 _heartbeatTimer.schedule(new TimerTask() {
@@ -295,6 +301,8 @@ public class ConnectionService extends Service {
                             return;
                         }
                         _heartbeatPool.add(System.currentTimeMillis());
+                        FramedataImpl1 frame = new FramedataImpl1(Opcode.PING);
+                        frame.setFin(true);
                         _ws.getConnection().sendFrame(frame);
                         sendBroadcast(CONNECTION.SEND_PING);
                     }

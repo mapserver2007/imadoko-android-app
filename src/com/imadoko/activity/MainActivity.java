@@ -384,8 +384,8 @@ public class MainActivity extends FragmentActivity {
         }
 
         Editor editor = _pref.edit();
-        editor.putString(AppConstants.PREF_MAIN_LOG, jsonArray.toString());
-        editor.apply();
+        editor.remove(AppConstants.PREF_MAIN_LOG).apply();
+        editor.putString(AppConstants.PREF_MAIN_LOG, jsonArray.toString()).apply();
     }
 
     private void showGeofenceLog(String message) {
@@ -402,8 +402,8 @@ public class MainActivity extends FragmentActivity {
         }
 
         Editor editor = _pref.edit();
-        editor.putString(AppConstants.PREF_GEOFENCE_LOG, jsonArray.toString());
-        editor.apply();
+        editor.remove(AppConstants.PREF_GEOFENCE_LOG).apply();
+        editor.putString(AppConstants.PREF_GEOFENCE_LOG, jsonArray.toString()).apply();
     }
 
     private void loadDebugLogFromSharedPref() {
