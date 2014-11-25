@@ -15,6 +15,7 @@ import javax.net.ssl.SSLContext;
 import net.arnx.jsonic.JSON;
 
 import org.java_websocket.WebSocket;
+import org.java_websocket.WebSocket.READYSTATE;
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.client.WebSocketClient.WebSocketClientFactory;
@@ -45,8 +46,8 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationStatusCodes;
+import com.imadoko.R;
 import com.imadoko.activity.MainActivity;
-import com.imadoko.app.R;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.util.AppConstants;
@@ -74,6 +75,9 @@ public class ConnectionService extends Service {
     private Timer _heartbeatTimer;
     private int _recconectCount;
     private NotificationCompat.Builder _notify;
+
+    Timer _wsChecker;
+
 
     @Override
     public void onCreate() {
@@ -107,10 +111,17 @@ public class ConnectionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null) {
+            return START_NOT_STICKY;
+        }
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         createNotification();
-        createWebSocketConnection();
+
+        if (_ws == null || _ws.getReadyState() != READYSTATE.OPEN) {
+            createWebSocketConnection();
+        }
+
         return START_STICKY;
     }
 
@@ -124,7 +135,7 @@ public class ConnectionService extends Service {
         _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
             @Override
             public void onConnected(Bundle bundle) {
-                updateLocationRequest(AppConstants.SHORT_LOCATION_INTERVAL, AppConstants.LONG_LOCATION_INTERNAL);
+                updateLocationRequest(AppConstants.LONG_LOCATION_INTERNAL);
                 addGeofence();
             }
 
@@ -199,14 +210,14 @@ public class ConnectionService extends Service {
         };
 
         _locationRequest = LocationRequest.create();
-        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
 
-    private void updateLocationRequest(long shortInterval, long longInterval) {
-        _locationRequest.setInterval(shortInterval);
-        _locationRequest.setFastestInterval(longInterval);
+    private void updateLocationRequest(long interval) {
+        _locationRequest.setInterval(interval);
+        _locationRequest.setFastestInterval(interval);
         _locationClient.requestLocationUpdates(_locationRequest, _locationListener);
     }
 
@@ -322,6 +333,7 @@ public class ConnectionService extends Service {
                                 @Override
                                 public void run() {
                                     sendBroadcast(CONNECTION.RECONNECTING);
+                                    Log.d(AppConstants.TAG_APPLICATION, "再接続開始だが…");
                                     createWebSocketConnection();
                                 }
                             },
@@ -376,6 +388,20 @@ public class ConnectionService extends Service {
 
         _ws.setWebSocketFactory(webSocketClientFactory);
         _ws.connect();
+
+
+//        if (_wsChecker != null) {
+//            _wsChecker.cancel();
+//        } else {
+//            _wsChecker = new Timer();
+//        }
+
+//        _wsChecker.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                Log.d(AppConstants.TAG_APPLICATION, String.valueOf(_ws.getReadyState()));
+//            }
+//        }, 10000, 10000);
     }
 
     /**

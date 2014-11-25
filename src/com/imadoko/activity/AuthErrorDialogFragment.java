@@ -8,17 +8,17 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.ContextThemeWrapper;
 
-import com.imadoko.app.R;
+import com.imadoko.R;
 
 public class AuthErrorDialogFragment extends DialogFragment {
-
     private Dialog _dialog;
+    private String _message;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.ErrorDialogTheme));
         _dialog = builder
-            .setMessage("認証エラーが発生しました。")
+            .setMessage(_message)
             .setPositiveButton("閉じる", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -44,5 +44,9 @@ public class AuthErrorDialogFragment extends DialogFragment {
     public void onStop() {
         super.onStop();
         getActivity().finish();
+    }
+
+    public void setMessage(String message) {
+        _message = message;
     }
 }

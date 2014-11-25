@@ -12,7 +12,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
-import com.imadoko.app.R;
+import com.imadoko.R;
 
 public class SettingsDialogFragment extends DialogFragment {
     private Dialog _dialog;

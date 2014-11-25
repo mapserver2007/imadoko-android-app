@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.ContextThemeWrapper;
 
-import com.imadoko.app.R;
+import com.imadoko.R;
 
 public class AlertDialogFragment extends DialogFragment {
 

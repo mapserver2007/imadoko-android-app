@@ -8,12 +8,16 @@ import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-import com.imadoko.app.R;
+import com.imadoko.R;
 import com.imadoko.entity.AuthSaltEntity;
 import com.imadoko.entity.GeofenceEntity;
 import com.imadoko.entity.GeofenceParcelable;
@@ -21,6 +25,7 @@ import com.imadoko.entity.HttpRequestEntity;
 import com.imadoko.entity.HttpResponseEntity;
 import com.imadoko.network.AsyncHttpTaskLoader;
 import com.imadoko.util.AppConstants;
+import com.imadoko.util.AppMessages;
 import com.imadoko.util.AppUtils;
 
 public class SplashActivity extends FragmentActivity {
@@ -76,13 +81,16 @@ public class SplashActivity extends FragmentActivity {
                 }
             };
             loader.get();
+        } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+            showErrorDialog(AppMessages.DIALOG_I1);
         } else {
-            showErrorDialog();
+            showErrorDialog(AppMessages.DIALOG_E1);
         }
     }
 
-    private void showErrorDialog() {
+    private void showErrorDialog(String message) {
         AuthErrorDialogFragment dialog = new AuthErrorDialogFragment();
+        dialog.setMessage(message);
         dialog.show(getSupportFragmentManager(), AppConstants.DIALOG_AUTH_ERROR);
     }
 

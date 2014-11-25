@@ -10,6 +10,7 @@
     <string name="switch_text">接続状態</string>
     <string name="switch_off">停止</string>
     <string name="switch_on">接続</string>
+    <string name="dialog_create_user_text">ユーザ名を新規登録</string>
     <string name="dialog_title1_text">表示するユーザ名を入力</string>
     <string name="dialog_title2_text">位置情報提供を許可</string>
     <string name="dialog_locpermission">提供を許可する</string>

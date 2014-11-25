@@ -13,8 +13,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -23,7 +21,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -43,7 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
-import com.imadoko.app.R;
+import com.imadoko.R;
 import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.GeofenceStatusEntity;
 import com.imadoko.entity.HttpRequestEntity;
@@ -158,8 +155,6 @@ public class MainActivity extends FragmentActivity {
         if (_pref == null) {
             _pref = getSharedPreferences(AppConstants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
         }
-        loadDebugLogFromSharedPref();
-        loadGeofenceLogFromSharedPref();
         showDebugLog(CONNECTION.APPLICATION_START.toString());
         if (!isServiceRunning(this, ConnectionService.class)) {
             showDebugLog(CONNECTION.SERVICE_DEAD.toString());
@@ -377,15 +372,6 @@ public class MainActivity extends FragmentActivity {
         }
         _debugLogQueue.add(datetime + ": " + message);
         _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
-
-        JSONArray jsonArray = new JSONArray();
-        for (String log : _debugLogQueue) {
-            jsonArray.put(log);
-        }
-
-        Editor editor = _pref.edit();
-        editor.remove(AppConstants.PREF_MAIN_LOG).apply();
-        editor.putString(AppConstants.PREF_MAIN_LOG, jsonArray.toString()).apply();
     }
 
     private void showGeofenceLog(String message) {
@@ -395,37 +381,6 @@ public class MainActivity extends FragmentActivity {
         }
         _geofenceLogQueue.add(datetime + ": " + message);
         _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
-
-        JSONArray jsonArray = new JSONArray();
-        for (String log : _geofenceLogQueue) {
-            jsonArray.put(log);
-        }
-
-        Editor editor = _pref.edit();
-        editor.remove(AppConstants.PREF_GEOFENCE_LOG).apply();
-        editor.putString(AppConstants.PREF_GEOFENCE_LOG, jsonArray.toString()).apply();
-    }
-
-    private void loadDebugLogFromSharedPref() {
-        JSONArray jsonArray;
-        try {
-            jsonArray = new JSONArray(_pref.getString(AppConstants.PREF_MAIN_LOG, ""));
-            for (int i = 0; i < jsonArray.length(); i++) {
-                _debugLogQueue.add(jsonArray.getString(i));
-            }
-            _debugLog.setText(TextUtils.join("\n", _debugLogQueue));
-        } catch (JSONException ignore) {}
-    }
-
-    private void loadGeofenceLogFromSharedPref() {
-        JSONArray jsonArray;
-        try {
-            jsonArray = new JSONArray(_pref.getString(AppConstants.PREF_GEOFENCE_LOG, ""));
-            for (int i = 0; i < jsonArray.length(); i++) {
-                _geofenceLogQueue.add(jsonArray.getString(i));
-            }
-            _geofenceLog.setText(TextUtils.join("\n", _geofenceLogQueue));
-        } catch (JSONException ignore) {}
     }
 
     public void onUpdateSetting(int statusCode, String userName, boolean isLocationPermission) {

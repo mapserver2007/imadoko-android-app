@@ -147,7 +147,7 @@ public class HttpClient {
             HttpParams httpParams = new BasicHttpParams();
             HttpConnectionParams.setSocketBufferSize(httpParams, 4096);
             HttpConnectionParams.setSoTimeout(httpParams, 5000);
-            HttpConnectionParams.setConnectionTimeout(httpParams, 5000);
+            HttpConnectionParams.setConnectionTimeout(httpParams, 10000);
             HttpProtocolParams.setContentCharset(httpParams, HTTP.UTF_8);
             HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
 

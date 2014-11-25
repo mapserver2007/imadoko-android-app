@@ -17,6 +17,7 @@ public class AppConstants {
     public static final String PREF_GEOFENCE_LOG = "geofenceLog";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
     public static final int GEOFENCE_LOG_MAX_SIZE = 3;
+    public static final String APPLICATION_TYPE = "1";
 
     /** Action */
     public static final String ACTION = "com.imadoko.app.MainActivity";
@@ -45,9 +46,7 @@ public class AppConstants {
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
-    public static final long SHORT_LOCATION_INTERVAL = 120000L;
-    public static final long LONG_LOCATION_INTERNAL = 300000L;
-    public static final String APPLICATION_TYPE = "1";
+    public static final long LOCATION_INTERVAL = 300000L;
 
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;
@@ -79,11 +78,7 @@ public class AppConstants {
     public static final String DIALOG_ALERT = "DialogAlert";
     public static final String DIALOG_SETTINGS = "DialogSettings";
     public static final String DIALOG_AUTH_ERROR = "DialogAuthError";
-
-    /** UI系 */
-    public static final int SWIPE_MIN_DISTANCE = 120;
-    public static final int SWIPE_MAX_OFF_PATH = 250;
-    public static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    public static final String DIALOG_CREATE_USER = "DialogCreateUser";
 
     /** 画像 */
     public static final String CONNECTION_OK_IMAGE = "connection1.png";
