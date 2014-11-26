@@ -76,9 +76,6 @@ public class ConnectionService extends Service {
     private int _recconectCount;
     private NotificationCompat.Builder _notify;
 
-    Timer _wsChecker;
-
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -135,7 +132,7 @@ public class ConnectionService extends Service {
         _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
             @Override
             public void onConnected(Bundle bundle) {
-                updateLocationRequest(AppConstants.LONG_LOCATION_INTERNAL);
+                updateLocationRequest();
                 addGeofence();
             }
 
@@ -210,14 +207,15 @@ public class ConnectionService extends Service {
         };
 
         _locationRequest = LocationRequest.create();
-        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
         _locationClient.connect();
     }
 
-    private void updateLocationRequest(long interval) {
-        _locationRequest.setInterval(interval);
-        _locationRequest.setFastestInterval(interval);
+    private void updateLocationRequest() {
+        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        _locationRequest.setInterval(AppConstants.LOCATION_INTERVAL);
+        _locationRequest.setFastestInterval(AppConstants.LOCATION_INTERVAL);
+        _locationRequest.setSmallestDisplacement(AppConstants.SMALLEST_DISPLACEMENT);
         _locationClient.requestLocationUpdates(_locationRequest, _locationListener);
     }
 
@@ -388,20 +386,6 @@ public class ConnectionService extends Service {
 
         _ws.setWebSocketFactory(webSocketClientFactory);
         _ws.connect();
-
-
-//        if (_wsChecker != null) {
-//            _wsChecker.cancel();
-//        } else {
-//            _wsChecker = new Timer();
-//        }
-
-//        _wsChecker.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                Log.d(AppConstants.TAG_APPLICATION, String.valueOf(_ws.getReadyState()));
-//            }
-//        }, 10000, 10000);
     }
 
     /**

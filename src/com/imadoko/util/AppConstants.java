@@ -46,7 +46,8 @@ public class AppConstants {
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
-    public static final long LOCATION_INTERVAL = 300000L;
+    public static final long LOCATION_INTERVAL = 300000L; // 5分
+    public static final float SMALLEST_DISPLACEMENT = 100f; // 100m
 
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;
