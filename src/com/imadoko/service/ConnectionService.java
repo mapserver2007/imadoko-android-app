@@ -73,6 +73,7 @@ public class ConnectionService extends Service {
     private WebSocketEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
+    private Timer _wsTimer;
     private int _recconectCount;
     private NotificationCompat.Builder _notify;
 
@@ -82,19 +83,22 @@ public class ConnectionService extends Service {
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
         createNotification();
-        startForeground(1, _notify.build());
+//        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopForeground(true);
+//        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
         }
         if (_locationClient != null) {
             _locationClient.disconnect();
+        }
+        if (_wsTimer != null) {
+            _wsTimer.cancel();
         }
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
@@ -118,6 +122,16 @@ public class ConnectionService extends Service {
         if (_ws == null || _ws.getReadyState() != READYSTATE.OPEN) {
             createWebSocketConnection();
         }
+
+        _wsTimer = new Timer(true);
+        _wsTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (_ws == null || _ws.getReadyState() == READYSTATE.CLOSED) {
+                    createWebSocketConnection();
+                }
+            }
+        }, 0, AppConstants.WS_TIMER_INTERVAL);
 
         return START_STICKY;
     }
@@ -301,7 +315,7 @@ public class ConnectionService extends Service {
                 });
 
                 // HeartBaat処理
-                _heartbeatTimer = new Timer();
+                _heartbeatTimer = new Timer(true);
                 _heartbeatTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
@@ -315,7 +329,7 @@ public class ConnectionService extends Service {
                         _ws.getConnection().sendFrame(frame);
                         sendBroadcast(CONNECTION.SEND_PING);
                     }
-                }, AppConstants.TIMER_INTERVAL, AppConstants.TIMER_INTERVAL);
+                }, AppConstants.PING_TIMER_INTERVAL, AppConstants.PING_TIMER_INTERVAL);
             }
 
             @Override
@@ -331,7 +345,6 @@ public class ConnectionService extends Service {
                                 @Override
                                 public void run() {
                                     sendBroadcast(CONNECTION.RECONNECTING);
-                                    Log.d(AppConstants.TAG_APPLICATION, "再接続開始だが…");
                                     createWebSocketConnection();
                                 }
                             },

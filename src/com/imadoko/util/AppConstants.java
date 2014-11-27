@@ -41,7 +41,8 @@ public class AppConstants {
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final String WEBSOCKET_APPLICATION_TYPE_HEADER = "X-Imadoko-ApplicationType";
     public static final int SERVICE_CLOSE_CODE = 1002;
-    public static final int TIMER_INTERVAL = 15000;
+    public static final int WS_TIMER_INTERVAL = 30000;
+    public static final int PING_TIMER_INTERVAL = 20000;
     public static final int FAST_RECCONECT_MAX_NUM = 10;
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
