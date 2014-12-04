@@ -1,7 +1,6 @@
 package com.imadoko.service;
 
 import java.net.URI;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,15 +9,11 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.net.ssl.SSLContext;
-
 import net.arnx.jsonic.JSON;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocket.READYSTATE;
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.client.WebSocketClient.WebSocketClientFactory;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.framing.Framedata.Opcode;
@@ -52,7 +47,6 @@ import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
-import com.imadoko.util.AppUtils;
 
 /**
  * ConnectionService
@@ -73,7 +67,6 @@ public class ConnectionService extends Service {
     private WebSocketEntity _responseEntity;
     private LinkedList<Long> _heartbeatPool;
     private Timer _heartbeatTimer;
-    private Timer _wsTimer;
     private int _recconectCount;
     private NotificationCompat.Builder _notify;
 
@@ -83,22 +76,19 @@ public class ConnectionService extends Service {
         _heartbeatPool = new LinkedList<Long>();
         createLocationManager();
         createNotification();
-//        startForeground(1, _notify.build());
+        startForeground(1, _notify.build());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        stopForeground(true);
+        stopForeground(true);
         if (_ws != null) {
             _ws.getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
             _ws = null;
         }
         if (_locationClient != null) {
             _locationClient.disconnect();
-        }
-        if (_wsTimer != null) {
-            _wsTimer.cancel();
         }
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
@@ -123,17 +113,7 @@ public class ConnectionService extends Service {
             createWebSocketConnection();
         }
 
-        _wsTimer = new Timer(true);
-        _wsTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (_ws == null || _ws.getReadyState() == READYSTATE.CLOSED) {
-                    createWebSocketConnection();
-                }
-            }
-        }, 0, AppConstants.WS_TIMER_INTERVAL);
-
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     /**
@@ -146,6 +126,7 @@ public class ConnectionService extends Service {
         _connectionCallbacks = new GooglePlayServicesClient.ConnectionCallbacks() {
             @Override
             public void onConnected(Bundle bundle) {
+                removeLocationRequest();
                 updateLocationRequest();
                 addGeofence();
             }
@@ -222,11 +203,14 @@ public class ConnectionService extends Service {
 
         _locationRequest = LocationRequest.create();
         _locationClient = new LocationClient(this, _connectionCallbacks, _onConnectionFailedListener);
+        if (_locationClient.isConnected()) {
+            removeLocationRequest();
+        }
         _locationClient.connect();
     }
 
     private void updateLocationRequest() {
-        _locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         _locationRequest.setInterval(AppConstants.LOCATION_INTERVAL);
         _locationRequest.setFastestInterval(AppConstants.LOCATION_INTERVAL);
         _locationRequest.setSmallestDisplacement(AppConstants.SMALLEST_DISPLACEMENT);
@@ -287,12 +271,8 @@ public class ConnectionService extends Service {
         }
 
         URI uri;
-        WebSocketClientFactory webSocketClientFactory = null;
         try {
             uri = new URI(AppConstants.WEBSOCKET_SERVER_URI);
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, AppUtils.getTrustAllCerts(), SecureRandom.getInstance("SHA1PRNG"));
-            webSocketClientFactory = new DefaultSSLWebSocketClientFactory(sslContext);
         } catch (Throwable e) {
             sendBroadcast(CONNECTION.DISCONNECT);
             return;
@@ -397,7 +377,6 @@ public class ConnectionService extends Service {
             }
         };
 
-        _ws.setWebSocketFactory(webSocketClientFactory);
         _ws.connect();
     }
 

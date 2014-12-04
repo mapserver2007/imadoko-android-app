@@ -19,11 +19,12 @@ public class AppConstants {
     public static final int GEOFENCE_LOG_MAX_SIZE = 3;
     public static final String APPLICATION_TYPE = "1";
 
-    /** Action */
-    public static final String ACTION = "com.imadoko.app.MainActivity";
+    /** classpath */
+    public static final String ACTION = "com.imadoko.activity.MainActivity";
+    public static final String SERVICE = "com.imadoko.service.ConnectionService";
 
     /** WebSocket/REST系 */
-    public static final String WEBSOCKET_SERVER_URI  = "wss://imadoko-node-server.herokuapp.com";
+    public static final String WEBSOCKET_SERVER_URI  = "ws://imadoko-node-server.herokuapp.com";
     public static final String AUTHSALT_URL          = "https://imadoko-node-server.herokuapp.com/salt";
     public static final String AUTH_URL              = "https://imadoko-node-server.herokuapp.com/auth";
     public static final String MASTER_GEOFENCE_URL   = "https://imadoko-node-server.herokuapp.com/master/geofence";
@@ -31,13 +32,13 @@ public class AppConstants {
     public static final String GEOFENCE_LOG_URL      = "https://imadoko-node-server.herokuapp.com/geofence/log";
     public static final String GEOFENCE_STATUS_URL   = "https://imadoko-node-server.herokuapp.com/geofence/status";
     public static final String UPDATE_SETTING_URL    = "https://imadoko-node-server.herokuapp.com/setting/update";
-//    public static final String WEBSOCKET_SERVER_URI  = "wss://192.168.0.30:9224";
-//    public static final String AUTHSALT_URL          = "https://192.168.0.30:9224/salt";
-//    public static final String AUTH_URL              = "https://192.168.0.30:9224/auth";
-//    public static final String GEOFENCE_DATA_URL     = "https://192.168.0.30:9224/geofence/data";
-//    public static final String GEOFENCE_LOG_URL      = "https://192.168.0.30:9224/geofence/log";
-//    public static final String GEOFENCE_STATUS_URL   = "https://192.168.0.30:9224/geofence/status";
-//    public static final String UPDATE_SETTING_URL    = "https://192.168.0.30:9224/setting/update";
+//    public static final String WEBSOCKET_SERVER_URI  = "ws://192.168.0.30:9224";
+//    public static final String AUTHSALT_URL          = "http://192.168.0.30:9224/salt";
+//    public static final String AUTH_URL              = "http://192.168.0.30:9224/auth";
+//    public static final String GEOFENCE_DATA_URL     = "http://192.168.0.30:9224/geofence/data";
+//    public static final String GEOFENCE_LOG_URL      = "http://192.168.0.30:9224/geofence/log";
+//    public static final String GEOFENCE_STATUS_URL   = "http://192.168.0.30:9224/geofence/status";
+//    public static final String UPDATE_SETTING_URL    = "http://192.168.0.30:9224/setting/update";
     public static final String WEBSOCKET_AUTHKEY_HEADER = "X-Imadoko-AuthKey";
     public static final String WEBSOCKET_APPLICATION_TYPE_HEADER = "X-Imadoko-ApplicationType";
     public static final int SERVICE_CLOSE_CODE = 1002;
@@ -48,7 +49,7 @@ public class AppConstants {
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
     public static final long LOCATION_INTERVAL = 300000L; // 5分
-    public static final float SMALLEST_DISPLACEMENT = 100f; // 100m
+    public static final float SMALLEST_DISPLACEMENT = 300f; // 300m
 
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;

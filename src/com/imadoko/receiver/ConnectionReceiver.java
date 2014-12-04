@@ -17,6 +17,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
         String message;
         int placeId;
         int transitionType;
+
         Bundle bundle = intent.getExtras();
         CONNECTION status = (CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
 
@@ -40,6 +41,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.onReConnecting(status.toString());
             break;
         case SEND_PING:
+            break;
         case GEOFENCE_ERROR:
         case LOCATION_UPDATE:
             // ログは更新するが画面上のステータスは更新しない
@@ -48,7 +50,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
         case RECEIVE_PONG:
             // 画面上のステータスは接続確立
             activity.onConnected(AppConstants.CONNECTION.CONNECTING.toString());
-            activity.showDebugLog(status.toString());
+//            activity.showDebugLog(status.toString());
             break;
         case GEOFENCE_IN:
         case GEOFENCE_OUT:

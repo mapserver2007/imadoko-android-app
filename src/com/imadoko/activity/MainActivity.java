@@ -16,6 +16,7 @@ import org.apache.http.HttpStatus;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -124,7 +125,7 @@ public class MainActivity extends FragmentActivity {
                     }
                 });
 
-        startService(CONNECTION.APPLICATION_CREATE.toString());
+        initService(CONNECTION.APPLICATION_CREATE.toString());
         setButtonEvent();
     }
 
@@ -146,6 +147,8 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopService(new Intent(this, ConnectionService.class));
+        unregisterReceiver(_receiver);
         endConnectingImage();
     }
 
@@ -353,6 +356,11 @@ public class MainActivity extends FragmentActivity {
         }
 
         return false;
+    }
+
+    private void initService(String message) {
+        stopService(message);
+        startService(message);
     }
 
     private void showDialog(String message) {
