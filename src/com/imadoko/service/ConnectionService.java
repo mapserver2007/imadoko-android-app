@@ -56,6 +56,7 @@ import com.imadoko.util.AppConstants.CONNECTION;
 public class ConnectionService extends Service {
     private WebSocketClient _ws;
     private String _authKey;
+    private String _locationQuality;
     private ArrayList<GeofenceParcelable> _geofenceList;
     private LocationClient _locationClient;
     private GooglePlayServicesClient.ConnectionCallbacks _connectionCallbacks;
@@ -92,6 +93,7 @@ public class ConnectionService extends Service {
         }
         if (_heartbeatTimer != null) {
             _heartbeatTimer.cancel();
+            _heartbeatTimer.purge();
         }
     }
 
@@ -106,6 +108,7 @@ public class ConnectionService extends Service {
             return START_NOT_STICKY;
         }
         _authKey = intent.getStringExtra(AppConstants.PARAM_AUTH_KEY);
+        _locationQuality = intent.getStringExtra(AppConstants.PARAM_LOCATION_QUALITY);
         _geofenceList = intent.getExtras().getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         createNotification();
 
@@ -210,10 +213,15 @@ public class ConnectionService extends Service {
     }
 
     private void updateLocationRequest() {
+        long interval = AppConstants.LOCATION_QUALITY_HIGH.equals(_locationQuality) ?
+                AppConstants.LOCATION_LOW_INTERVAL : AppConstants.LOCATION_HIGH_INTERVAL;
+        float displacement = AppConstants.LOCATION_QUALITY_HIGH.equals(_locationQuality) ?
+                AppConstants.SMALLEST_LOW_DISPLACEMENT : AppConstants.SMALLEST_HIGH_DISPLACEMENT;
+
         _locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        _locationRequest.setInterval(AppConstants.LOCATION_INTERVAL);
-        _locationRequest.setFastestInterval(AppConstants.LOCATION_INTERVAL);
-        _locationRequest.setSmallestDisplacement(AppConstants.SMALLEST_DISPLACEMENT);
+        _locationRequest.setInterval(interval);
+        _locationRequest.setFastestInterval(interval);
+        _locationRequest.setSmallestDisplacement(displacement);
         _locationClient.requestLocationUpdates(_locationRequest, _locationListener);
     }
 
@@ -316,6 +324,7 @@ public class ConnectionService extends Service {
             public void onClose(int code, String reason, boolean remote) {
                 Log.d(AppConstants.TAG_WEBSOCKET, "onClose");
                 _heartbeatTimer.cancel();
+                _heartbeatTimer.purge();
 
                 if (isServiceRunning(ConnectionService.class)) {
                     if (code != AppConstants.SERVICE_CLOSE_CODE) { // サーバからの切断

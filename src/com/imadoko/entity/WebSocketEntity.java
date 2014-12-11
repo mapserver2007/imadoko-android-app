@@ -7,9 +7,11 @@ package com.imadoko.entity;
  */
 public class WebSocketEntity {
     /** 認証キー */
-    protected String _authKey;
+    private String _authKey;
     /** リクエストID */
-    protected String _requestId;
+    private String _requestId;
+    /** コネクションID */
+    private String _connectionId;
     /** 経度 */
     private String _lng;
     /** 緯度 */
@@ -45,6 +47,22 @@ public class WebSocketEntity {
      */
     public String getRequestId() {
         return _requestId;
+    }
+
+    /**
+     * コネクションIDを設定する
+     * @param authKey 認証キー
+     */
+    public void setConnectionId(String authKey) {
+        _connectionId = authKey;
+    }
+
+    /**
+     * コネクションIDを返却する
+     * @return 認証キー
+     */
+    public String getConnectionId() {
+        return _connectionId;
     }
 
     /**

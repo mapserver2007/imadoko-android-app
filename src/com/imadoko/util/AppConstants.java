@@ -13,11 +13,14 @@ public class AppConstants {
     public static final String TRIGGERED_LATITUDE = "triggeredLatitude";
     public static final String GEOFENCE_PLACE_ID = "geofencePlaceId";
     public static final String SHARED_PREFERENCES_KEY = "myPref";
+    public static final String LOCATION_QUALITY_KEY = "locationQuality";
     public static final String PREF_MAIN_LOG = "mainLog";
     public static final String PREF_GEOFENCE_LOG = "geofenceLog";
     public static final int DEBUG_LOG_MAX_SIZE = 7;
     public static final int GEOFENCE_LOG_MAX_SIZE = 3;
     public static final String APPLICATION_TYPE = "1";
+    public static final String LOCATION_QUALITY_LOW = "1";
+    public static final String LOCATION_QUALITY_HIGH = "2";
 
     /** classpath */
     public static final String ACTION = "com.imadoko.activity.MainActivity";
@@ -48,8 +51,10 @@ public class AppConstants {
     public static final int RECOONECT_FAST_INTRERVAL = 5000;
     public static final int RECONNECT_INTERVAL = 100000;
     public static final int LOITERING_DELAY = 180000; // 3分
-    public static final long LOCATION_INTERVAL = 300000L; // 5分
-    public static final float SMALLEST_DISPLACEMENT = 300f; // 300m
+    public static final long LOCATION_LOW_INTERVAL = 300000L; // 5分
+    public static final float SMALLEST_LOW_DISPLACEMENT = 300f; // 300m
+    public static final long LOCATION_HIGH_INTERVAL = 60000L; // 1分
+    public static final float SMALLEST_HIGH_DISPLACEMENT = 100f; // 100m
 
     /** Geofenceステータス */
     public static final int GEOFENCE_NOTIFICATION_OK = 1;
@@ -61,6 +66,8 @@ public class AppConstants {
 
     /** ParameterKey */
     public static final String PARAM_AUTH_KEY = "authKey";
+    public static final String PARAM_LOCATION_QUALITY = "locationQuality";
+    public static final String PARAM_CONNECTION_ID = "connectionId";
     public static final String PARAM_SALT_NAME = "name";
     public static final String PARAM_USERNAME = "userName";
     public static final String PARAM_LOCATION_PERMISSION = "locPermission";
@@ -113,7 +120,8 @@ public class AppConstants {
         GEOFENCE_ERROR("ジオフェンスエラー"),
         SERVICE_DEAD("想定外のサービス停止"),
         SETTING_OK("設定更新成功"),
-        SETTING_NG("設定更新失敗");
+        SETTING_NG("設定更新失敗"),
+        LOCATION_QUALITY_CHANGE("位置情報取得精度変更");
 
         private String status;
 

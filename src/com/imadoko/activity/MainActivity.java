@@ -16,12 +16,12 @@ import org.apache.http.HttpStatus;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -72,6 +72,7 @@ public class MainActivity extends FragmentActivity {
     private Queue<String> _debugLogQueue;
     private Queue<String> _geofenceLogQueue;
     private String _authKey;
+    private String _locationQuality;
     private String _userName;
     private boolean _isLocationPermission;
     private ArrayList<GeofenceParcelable> _geofenceList;
@@ -125,6 +126,20 @@ public class MainActivity extends FragmentActivity {
                     }
                 });
 
+        findViewById(R.id.connection_image).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                updateLocationQuality();
+                initService(CONNECTION.LOCATION_QUALITY_CHANGE.toString());
+                return false;
+            }
+        });
+
+        if (_pref == null) {
+            _pref = getSharedPreferences(AppConstants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
+        }
+
+        updateLocationQuality();
         initService(CONNECTION.APPLICATION_CREATE.toString());
         setButtonEvent();
     }
@@ -155,9 +170,6 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onStart() {
         super.onStart();
-        if (_pref == null) {
-            _pref = getSharedPreferences(AppConstants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
-        }
         showDebugLog(CONNECTION.APPLICATION_START.toString());
         if (!isServiceRunning(this, ConnectionService.class)) {
             showDebugLog(CONNECTION.SERVICE_DEAD.toString());
@@ -332,6 +344,7 @@ public class MainActivity extends FragmentActivity {
             bundle.putParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY, _geofenceList);
             Intent intent = new Intent(this, ConnectionService.class);
             intent.putExtra(AppConstants.PARAM_AUTH_KEY, _authKey);
+            intent.putExtra(AppConstants.PARAM_LOCATION_QUALITY, _locationQuality);
             intent.putExtras(bundle);
             startService(intent);
             onConnecting(message);
@@ -358,9 +371,38 @@ public class MainActivity extends FragmentActivity {
         return false;
     }
 
-    private void initService(String message) {
-        stopService(message);
-        startService(message);
+    private void initService(final String message) {
+        showDebugLog(message);
+        if (stopService(message)) {
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startService(message);
+                }
+            }, 1000);
+        } else {
+            startService(message);
+        }
+    }
+
+    private void updateLocationQuality() {
+        _locationQuality = getPreferenceData(AppConstants.LOCATION_QUALITY_KEY);
+        if ("".equals(_locationQuality)) {
+            _locationQuality = AppConstants.LOCATION_QUALITY_LOW;
+        }
+
+        int color;
+        if (AppConstants.LOCATION_QUALITY_LOW.equals(_locationQuality)) { // LOW -> HIGH
+            color = Color.rgb(25, 25, 112);
+            setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_HIGH);
+        } else { // HIGH -> LOW
+            color = Color.rgb(0, 0, 0);
+            setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_LOW);
+        }
+
+        findViewById(R.id.imadoko_main_layout).setBackgroundColor(color);
+        findViewById(R.id.connection_image).setBackgroundColor(color);
     }
 
     private void showDialog(String message) {
@@ -479,6 +521,16 @@ public class MainActivity extends FragmentActivity {
     private void connectFailureImage() {
         endConnectingImage();
         getConnectionImageView().setImageDrawable(_disconnectImage);
+    }
+
+    private String getPreferenceData(String key) {
+        return _pref.getString(key, "");
+    }
+
+    private void setPreferenceData(String key, String value) {
+        Editor editor = _pref.edit();
+        editor.remove(key).apply();
+        editor.putString(key, value).apply();
     }
 
     /**

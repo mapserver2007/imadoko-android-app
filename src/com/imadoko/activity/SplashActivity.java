@@ -8,14 +8,10 @@ import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.imadoko.R;
 import com.imadoko.entity.AuthSaltEntity;
@@ -45,8 +41,6 @@ public class SplashActivity extends FragmentActivity {
     }
 
     private void startMainActivity(ArrayList<GeofenceParcelable> geofenceList) {
-        // geofenceListが空の場合(マスタに1件もない場合)を想定していない
-        // 作りこむならService側でも対処が必要
         String userName = geofenceList.get(0).getUsername();
         boolean isLocationPermission = geofenceList.get(0).getPermission() == 1;
         for (GeofenceParcelable geofence : geofenceList) {
@@ -77,7 +71,11 @@ public class SplashActivity extends FragmentActivity {
                 @Override
                 public void deliverResult(HttpResponseEntity response) {
                     GeofenceEntity geofenceEntity = JSON.decode(response.getResponseBody(), GeofenceEntity.class);
-                    startMainActivity(geofenceEntity.getData());
+                    if (geofenceEntity.getData().size() > 0) {
+                        startMainActivity(geofenceEntity.getData());
+                    } else {
+                        showErrorDialog(AppMessages.DIALOG_E2);
+                    }
                 }
             };
             loader.get();
@@ -107,7 +105,7 @@ public class SplashActivity extends FragmentActivity {
                 if (response.getStatusCode() == HttpStatus.SC_OK) {
                     AuthSaltEntity authSaltEntity = JSON.decode(response.getResponseBody(), AuthSaltEntity.class);
                     String udid = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-                    _authKey = AppUtils.generateAuthKey(udid, authSaltEntity.getSalt());
+                    _authKey = AppUtils.generateAuthKey(udid + AppConstants.APPLICATION_TYPE, authSaltEntity.getSalt());
 
                     HttpRequestEntity entity2 = new HttpRequestEntity();
                     entity2.setUrl(AppConstants.AUTH_URL);
