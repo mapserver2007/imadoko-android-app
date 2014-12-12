@@ -61,6 +61,7 @@ import com.imadoko.util.AppUtils;
 public class MainActivity extends FragmentActivity {
     private ConnectionReceiver _receiver;
     private TextView _connectionStatus;
+    private TextView _connectionQuality;
     private TextView _debugLog;
     private TextView _geofenceLog;
     private ImageView _connectionImage;
@@ -93,11 +94,13 @@ public class MainActivity extends FragmentActivity {
         _geofenceList = bundle.getParcelableArrayList(AppConstants.PARAM_GEOFENCE_ENTITY);
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
+        _connectionQuality = (TextView) findViewById(R.id.connection_quality);
         _debugLog = (TextView) findViewById(R.id.debug_log);
         _geofenceLog = (TextView) findViewById(R.id.geofence_log);
         _debugLogQueue = new ConcurrentLinkedQueue<String>();
         _geofenceLogQueue = new ConcurrentLinkedQueue<String>();
-        Resources res = this.getResources();
+
+        Resources res = getResources();
         _connectedImage = res.getDrawable(R.drawable.connected);
         _disconnectImage = res.getDrawable(R.drawable.disconnect);
         _connectingImages = new Drawable[] {
@@ -392,17 +395,15 @@ public class MainActivity extends FragmentActivity {
             _locationQuality = AppConstants.LOCATION_QUALITY_LOW;
         }
 
-        int color;
         if (AppConstants.LOCATION_QUALITY_LOW.equals(_locationQuality)) { // LOW -> HIGH
-            color = Color.rgb(25, 25, 112);
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_HIGH);
+            _connectedImage = getResources().getDrawable(R.drawable.connected_high);
+            _connectionQuality.setText("(高精度接続モード)");
         } else { // HIGH -> LOW
-            color = Color.rgb(0, 0, 0);
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_LOW);
+            _connectedImage = getResources().getDrawable(R.drawable.connected);
+            _connectionQuality.setText("(省電力接続モード)");
         }
-
-        findViewById(R.id.imadoko_main_layout).setBackgroundColor(color);
-        findViewById(R.id.connection_image).setBackgroundColor(color);
     }
 
     private void showDialog(String message) {
@@ -509,6 +510,7 @@ public class MainActivity extends FragmentActivity {
     private void endConnectingImage() {
         if (_connectingTimer != null) {
             _connectingTimer.cancel();
+            _connectingTimer.purge();
         }
         _connectingTimer = null;
     }
@@ -522,6 +524,11 @@ public class MainActivity extends FragmentActivity {
         endConnectingImage();
         getConnectionImageView().setImageDrawable(_disconnectImage);
     }
+
+//    private void connectHighPerformanceImage() {
+//        endConnectingImage();
+//        getConnectionImageView().setImageDrawable(_connectedHighPerformanceImage);
+//    }
 
     private String getPreferenceData(String key) {
         return _pref.getString(key, "");
