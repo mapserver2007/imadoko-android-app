@@ -50,7 +50,6 @@ public class ConnectionReceiver extends BroadcastReceiver {
         case RECEIVE_PONG:
             // 画面上のステータスは接続確立
             activity.onConnected(AppConstants.CONNECTION.CONNECTING.toString());
-//            activity.showDebugLog(status.toString());
             break;
         case GEOFENCE_IN:
         case GEOFENCE_OUT:
