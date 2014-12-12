@@ -307,6 +307,12 @@ public class ConnectionService extends Service {
                 _heartbeatTimer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+                        if (_ws == null || _ws.getReadyState() != READYSTATE.OPEN) {
+                            _heartbeatTimer.cancel();
+                            _heartbeatTimer.purge();
+                            return;
+                        }
+
                         if (_heartbeatPool.size() > 2) {
                             getConnection().close(AppConstants.SERVICE_CLOSE_CODE);
                             return;
