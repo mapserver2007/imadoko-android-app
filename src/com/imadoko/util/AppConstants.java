@@ -53,7 +53,7 @@ public class AppConstants {
     public static final int LOITERING_DELAY = 180000; // 3分
     public static final long LOCATION_LOW_INTERVAL = 300000L; // 5分
     public static final float SMALLEST_LOW_DISPLACEMENT = 300f; // 300m
-    public static final long LOCATION_HIGH_INTERVAL = 60000L; // 1分
+    public static final long LOCATION_HIGH_INTERVAL = 30000L; // 30秒
     public static final float SMALLEST_HIGH_DISPLACEMENT = 100f; // 100m
 
     /** Geofenceステータス */
