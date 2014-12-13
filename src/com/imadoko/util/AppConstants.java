@@ -134,4 +134,42 @@ public class AppConstants {
             return status;
         }
     }
+
+    /** Geofenceステータス */
+    public enum GEOFENCE_STATUS {
+        LOG_SAVED("Geofenceログ保存成功"),
+        LOG_NOT_SAVED("Geofenceログ保存失敗"),
+        NOTIFY_PATTERN_OK("通知可能なGeofence遷移:"),
+        NOTIFY_PATTERN_NG("通知不許可なGeofence遷移:"),
+        NOTIFY_SETTING_ENABLED("Geofence通知設定あり"),
+        NOTIFY_SETTING_DISABLED("Geofence通知設定なし");
+
+        private String status;
+
+        private GEOFENCE_STATUS(String status) {
+            this.status = status;
+        }
+
+        @Override
+        public String toString() {
+            return status;
+        }
+    }
+
+    /** 接続モード */
+    public enum CONNECTION_QUALITY {
+        LOW("(省電力接続モード)"),
+        HIGH("(高精度接続モード)");
+
+        private String status;
+
+        private CONNECTION_QUALITY(String status) {
+            this.status = status;
+        }
+
+        @Override
+        public String toString() {
+            return status;
+        }
+    }
 }

@@ -51,6 +51,9 @@ import com.imadoko.receiver.ConnectionReceiver;
 import com.imadoko.service.ConnectionService;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
+import com.imadoko.util.AppConstants.CONNECTION_QUALITY;
+import com.imadoko.util.AppConstants.GEOFENCE_STATUS;
+import com.imadoko.util.AppMessages;
 import com.imadoko.util.AppUtils;
 
 /**
@@ -142,7 +145,7 @@ public class MainActivity extends FragmentActivity {
             _pref = getSharedPreferences(AppConstants.SHARED_PREFERENCES_KEY, Context.MODE_PRIVATE);
         }
 
-        updateLocationQuality();
+        initLocationQuality();
         initService(CONNECTION.APPLICATION_CREATE.toString());
         setButtonEvent();
     }
@@ -194,7 +197,7 @@ public class MainActivity extends FragmentActivity {
 
     public void onConnectionError(String message) {
         if (stopService(message)) {
-            showDialog("imadokoサーバとの接続が切断されました。");
+            showDialog(AppMessages.DIALOG_E3);
         }
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
@@ -239,20 +242,20 @@ public class MainActivity extends FragmentActivity {
 
                     // 通知可能な移動ステータスの遷移
                     if (isNotified) {
-                        showDebugLog("通知可能なGeofence遷移:" + String.valueOf(entity.getNextTransitionPatternId()));
+                        showDebugLog(GEOFENCE_STATUS.NOTIFY_PATTERN_OK.toString() + String.valueOf(entity.getNextTransitionPatternId()));
                         // 通知許可なら通知実行
                         if ((entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_ENTER && entity.getIn() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                             (entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_EXIT && entity.getOut() == AppConstants.GEOFENCE_NOTIFICATION_OK) ||
                             (entity.getNextTransitionType() == Geofence.GEOFENCE_TRANSITION_DWELL && entity.getStay() == AppConstants.GEOFENCE_NOTIFICATION_OK)) {
-                            showDebugLog("Geofence通知あり");
+                            showDebugLog(GEOFENCE_STATUS.NOTIFY_SETTING_ENABLED.toString());
 
                             // TODO
                             showDialog("判定処理つくらなー");
                         } else {
-                            showDebugLog("Geofence通知設定なし");
+                            showDebugLog(GEOFENCE_STATUS.NOTIFY_SETTING_DISABLED.toString());
                         }
                     } else {
-                        showDebugLog("通知不許可なGeofence遷移:" + String.valueOf(entity.getNextTransitionPatternId()));
+                        showDebugLog(GEOFENCE_STATUS.NOTIFY_PATTERN_NG.toString() + String.valueOf(entity.getNextTransitionPatternId()));
                     }
 
                     StringBuilder sb = new StringBuilder();
@@ -284,7 +287,8 @@ public class MainActivity extends FragmentActivity {
         AsyncHttpTaskLoader loader = new AsyncHttpTaskLoader(this, entity) {
             @Override
             public void deliverResult(HttpResponseEntity response) {
-                String message = response.getStatusCode() == 200 ? "Geofenceログ保存成功" : "Geofenceログ保存失敗";
+                String message = response.getStatusCode() == 200 ?
+                        GEOFENCE_STATUS.LOG_SAVED.toString(): GEOFENCE_STATUS.LOG_NOT_SAVED.toString();
                 showDebugLog(message);
             }
         };
@@ -389,20 +393,28 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private void updateLocationQuality() {
+    private void initLocationQuality() {
         _locationQuality = getPreferenceData(AppConstants.LOCATION_QUALITY_KEY);
         if ("".equals(_locationQuality)) {
             _locationQuality = AppConstants.LOCATION_QUALITY_LOW;
         }
 
+        if (AppConstants.LOCATION_QUALITY_LOW.equals(_locationQuality)) {
+            _connectionQuality.setText(CONNECTION_QUALITY.LOW.toString());
+        } else {
+            _connectionQuality.setText(CONNECTION_QUALITY.HIGH.toString());
+        }
+    }
+
+    private void updateLocationQuality() {
         if (AppConstants.LOCATION_QUALITY_LOW.equals(_locationQuality)) { // LOW -> HIGH
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_HIGH);
             _connectedImage = getResources().getDrawable(R.drawable.connected_high);
-            _connectionQuality.setText("(高精度接続モード)");
+            _connectionQuality.setText(CONNECTION_QUALITY.HIGH.toString());
         } else { // HIGH -> LOW
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_LOW);
             _connectedImage = getResources().getDrawable(R.drawable.connected);
-            _connectionQuality.setText("(省電力接続モード)");
+            _connectionQuality.setText(CONNECTION_QUALITY.LOW.toString());
         }
     }
 
@@ -524,11 +536,6 @@ public class MainActivity extends FragmentActivity {
         endConnectingImage();
         getConnectionImageView().setImageDrawable(_disconnectImage);
     }
-
-//    private void connectHighPerformanceImage() {
-//        endConnectingImage();
-//        getConnectionImageView().setImageDrawable(_connectedHighPerformanceImage);
-//    }
 
     private String getPreferenceData(String key) {
         return _pref.getString(key, "");
