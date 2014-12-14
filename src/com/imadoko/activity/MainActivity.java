@@ -411,10 +411,12 @@ public class MainActivity extends FragmentActivity {
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_HIGH);
             _connectedImage = getResources().getDrawable(R.drawable.connected_high);
             _connectionQuality.setText(CONNECTION_QUALITY.HIGH.toString());
+            _locationQuality = AppConstants.LOCATION_QUALITY_HIGH;
         } else { // HIGH -> LOW
             setPreferenceData(AppConstants.LOCATION_QUALITY_KEY, AppConstants.LOCATION_QUALITY_LOW);
             _connectedImage = getResources().getDrawable(R.drawable.connected);
             _connectionQuality.setText(CONNECTION_QUALITY.LOW.toString());
+            _locationQuality = AppConstants.LOCATION_QUALITY_LOW;
         }
     }
 
