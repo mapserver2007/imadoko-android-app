@@ -47,6 +47,7 @@ import com.imadoko.entity.GeofenceParcelable;
 import com.imadoko.entity.WebSocketEntity;
 import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
+import com.imadoko.util.AppMessages;
 
 /**
  * ConnectionService
@@ -261,7 +262,7 @@ public class ConnectionService extends Service {
         _notify = new NotificationCompat.Builder(this)
             .setPriority(Notification.PRIORITY_HIGH)
             .setContentTitle("imadoko")
-            .setContentText("タップしてアプリケーションを表示する")
+            .setContentText(AppMessages.DIALOG_I2)
             .setSmallIcon(R.drawable.ic_statusbar)
             .setContentIntent(contentIntent)
             .setOngoing(true);

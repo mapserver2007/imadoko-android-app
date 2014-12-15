@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
+import org.java_websocket.WebSocket.READYSTATE;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -196,12 +197,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void onConnectionError(String message) {
-        if (stopService(message)) {
-            showDialog(AppMessages.DIALOG_E3);
-        }
-        connectFailureImage();
-        changeButton(CONNECTION.DISCONNECT);
-        _connectionStatus.setText(message);
+        initService(message);
     }
 
     public void onReConnect(String message) {

@@ -5,4 +5,5 @@ public class AppMessages {
     public static final String DIALOG_E2 = "GEOFENCEデータのロードに失敗しました。";
     public static final String DIALOG_E3 = "imadokoサーバとの接続が切断されました。";
     public static final String DIALOG_I1 = "新規ユーザ登録が必要です。";
+    public static final String DIALOG_I2 = "タップしてアプリケーションを表示する";
 }
