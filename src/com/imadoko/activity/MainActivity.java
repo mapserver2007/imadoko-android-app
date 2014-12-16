@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.arnx.jsonic.JSON;
 
 import org.apache.http.HttpStatus;
-import org.java_websocket.WebSocket.READYSTATE;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -54,7 +53,6 @@ import com.imadoko.util.AppConstants;
 import com.imadoko.util.AppConstants.CONNECTION;
 import com.imadoko.util.AppConstants.CONNECTION_QUALITY;
 import com.imadoko.util.AppConstants.GEOFENCE_STATUS;
-import com.imadoko.util.AppMessages;
 import com.imadoko.util.AppUtils;
 
 /**
@@ -196,8 +194,17 @@ public class MainActivity extends FragmentActivity {
         _connectionStatus.setText(message);
     }
 
-    public void onConnectionError(String message) {
-        initService(message);
+    public void onConnectionError(final String message) {
+        // Service停止中を考慮し1秒待つ
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!isServiceRunning(MainActivity.this, ConnectionService.class)) {
+                    startService(message);
+                }
+            }
+        }, 1000);
     }
 
     public void onReConnect(String message) {
@@ -214,6 +221,12 @@ public class MainActivity extends FragmentActivity {
     public void onConnecting(String message) {
         startConnectingImage();
         changeButton(CONNECTION.CONNECTING);
+        _connectionStatus.setText(message);
+    }
+
+    public void onConnectClose(String message) {
+        connectFailureImage();
+        changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
     }
 
@@ -364,8 +377,7 @@ public class MainActivity extends FragmentActivity {
             stopService(new Intent(this, ConnectionService.class));
             unregisterReceiver(_receiver);
             _receiver = null;
-            onConnectionError(message);
-            endConnectingImage();
+            onConnectClose(message);
             Log.d(AppConstants.TAG_APPLICATION, message);
 
             return true;
