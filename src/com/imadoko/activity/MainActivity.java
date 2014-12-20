@@ -64,6 +64,7 @@ public class MainActivity extends FragmentActivity {
     private ConnectionReceiver _receiver;
     private TextView _connectionStatus;
     private TextView _connectionQuality;
+    private TextView _connectionUserNum;
     private TextView _debugLog;
     private TextView _geofenceLog;
     private ImageView _connectionImage;
@@ -97,6 +98,7 @@ public class MainActivity extends FragmentActivity {
         _connectionImage = (ImageView) findViewById(R.id.connection_image);
         _connectionStatus = (TextView) findViewById(R.id.connection_status);
         _connectionQuality = (TextView) findViewById(R.id.connection_quality);
+        _connectionUserNum = (TextView) findViewById(R.id.connection_user_num);
         _debugLog = (TextView) findViewById(R.id.debug_log);
         _geofenceLog = (TextView) findViewById(R.id.geofence_log);
         _debugLogQueue = new ConcurrentLinkedQueue<String>();
@@ -228,6 +230,16 @@ public class MainActivity extends FragmentActivity {
         connectFailureImage();
         changeButton(CONNECTION.DISCONNECT);
         _connectionStatus.setText(message);
+    }
+
+    public void onUserConnect(String message, int userNum) {
+        _connectionUserNum.setText("接続ユーザ数：" + String.valueOf(userNum));
+        showDebugLog(message);
+    }
+
+    public void onUserDisconnect(String message, int userNum) {
+        _connectionUserNum.setText("接続ユーザ数：" + String.valueOf(userNum));
+        showDebugLog(message);
     }
 
     public void onGeofence(final int nextPlaceId, final int nextTransitionType) {

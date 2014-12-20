@@ -368,22 +368,30 @@ public class ConnectionService extends Service {
                     return;
                 }
 
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (_locationClient.isConnected()) {
-                            Location location = _locationClient.getLastLocation();
-                            if (location != null) {
-                                _responseEntity.setLng(String.valueOf(location.getLongitude()));
-                                _responseEntity.setLat(String.valueOf(location.getLatitude()));
-                                sendBroadcast(CONNECTION.LOCATION_OK);
-                                send(JSON.encode(_responseEntity));
-                            } else {
-                                sendBroadcast(CONNECTION.LOCATION_NG);
+                if (AppConstants.REQUEST_MAIN_TO_WATCHER.equals(_responseEntity.getRequestId())) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (_locationClient.isConnected()) {
+                                Location location = _locationClient.getLastLocation();
+                                if (location != null) {
+                                    _responseEntity.setLng(String.valueOf(location.getLongitude()));
+                                    _responseEntity.setLat(String.valueOf(location.getLatitude()));
+                                    sendBroadcast(CONNECTION.LOCATION_OK);
+                                    send(JSON.encode(_responseEntity));
+                                } else {
+                                    sendBroadcast(CONNECTION.LOCATION_NG);
+                                }
                             }
                         }
+                    });
+                } else if (AppConstants.REQUEST_CONNECTION_USERS.equals(_responseEntity.getRequestId())) {
+                    if (AppConstants.USER_CONNECT.equals(_responseEntity.getConnectionStatus())) {
+                        sendBroadcast(CONNECTION.USER_CONNECT, _responseEntity.getConnectionUsers());
+                    } else if (AppConstants.USER_DISCONNECT.equals(_responseEntity.getConnectionStatus())) {
+                        sendBroadcast(CONNECTION.USER_DISCONNECT, _responseEntity.getConnectionUsers());
                     }
-                });
+                }
             }
 
             @Override
@@ -403,6 +411,18 @@ public class ConnectionService extends Service {
     private void sendBroadcast(CONNECTION status) {
         Intent intent = new Intent(AppConstants.ACTION);
         intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
+        sendBroadcast(intent);
+    }
+
+    /**
+     * BroadcastReceiverへステータスを送信
+     * @param status 接続ステータス
+     * @param connectionUsers 接続ユーザ数
+     */
+    private void sendBroadcast(CONNECTION status, int connectionUsers) {
+        Intent intent = new Intent(AppConstants.ACTION);
+        intent.putExtra(AppConstants.SERIVCE_MESSAGE, status);
+        intent.putExtra(AppConstants.CONNECTION_USERS, connectionUsers);
         sendBroadcast(intent);
     }
 

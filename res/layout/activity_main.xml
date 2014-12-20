@@ -21,26 +21,6 @@
         android:contentDescription="@+id/connectoin_icon"
         android:src="@drawable/disconnect" />
 
-    <TextView
-        android:id="@+id/connection_quality"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/connection_status"
-        android:textSize="12sp"
-        android:text=""
-        android:gravity="center"
-        android:textColor="#fff" />
-    
-    <TextView
-        android:id="@+id/connection_status"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/connection_image"
-        android:gravity="center"
-        android:text=""
-        android:textColor="#fff"
-        android:textSize="22sp" />
-
     <Button
         android:id="@+id/start_button"
         style="@style/AppBaseTheme"
@@ -99,5 +79,37 @@
         android:maxLines="@string/geofence_log_line"
         android:textColor="#fff"
         android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/connection_quality"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/connection_status"
+        android:layout_above="@+id/connection_status"
+        android:layout_marginTop="26dp"
+        android:gravity="center"
+        android:textColor="#fff"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/connection_user_num"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/connection_status"
+        android:layout_below="@+id/connection_status"
+        android:text="@string/default_connection_user_num"
+        android:gravity="center"
+        android:textColor="#fff"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/connection_status"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/settings_button"
+        android:layout_alignTop="@+id/connection_image"
+        android:gravity="center"
+        android:textColor="#fff"
+        android:textSize="22sp" />
 
 </RelativeLayout>

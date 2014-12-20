@@ -17,6 +17,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
         String message;
         int placeId;
         int transitionType;
+        int connectionUsers;
 
         Bundle bundle = intent.getExtras();
         CONNECTION status = (CONNECTION) bundle.get(AppConstants.SERIVCE_MESSAGE);
@@ -49,7 +50,7 @@ public class ConnectionReceiver extends BroadcastReceiver {
             break;
         case RECEIVE_PONG:
             // 画面上のステータスは接続確立
-            activity.onConnected(AppConstants.CONNECTION.CONNECTING.toString());
+            activity.onConnected(CONNECTION.CONNECTING.toString());
             break;
         case GEOFENCE_IN:
         case GEOFENCE_OUT:
@@ -59,6 +60,14 @@ public class ConnectionReceiver extends BroadcastReceiver {
             message = activity.getLandMarkName(placeId);
             activity.onGeofence(placeId, transitionType);
             activity.showDebugLog(message + status.toString());
+            break;
+        case USER_CONNECT:
+            connectionUsers = bundle.getInt(AppConstants.CONNECTION_USERS);
+            activity.onUserConnect(CONNECTION.USER_CONNECT.toString(), connectionUsers);
+            break;
+        case USER_DISCONNECT:
+            connectionUsers = bundle.getInt(AppConstants.CONNECTION_USERS);
+            activity.onUserConnect(CONNECTION.USER_DISCONNECT.toString(), connectionUsers);
             break;
         default:
             break;

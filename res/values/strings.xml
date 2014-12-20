@@ -14,5 +14,6 @@
     <string name="dialog_title1_text">表示するユーザ名を入力</string>
     <string name="dialog_title2_text">位置情報提供を許可</string>
     <string name="dialog_locpermission">提供を許可する</string>
+    <string name="default_connection_user_num">接続ユーザ数：0</string>
     <string name="settings_buttion_description">settings button</string>
 </resources>

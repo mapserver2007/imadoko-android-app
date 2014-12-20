@@ -12,6 +12,7 @@ public class AppConstants {
     public static final String TRIGGERED_LONGITUDE = "triggeredLongitude";
     public static final String TRIGGERED_LATITUDE = "triggeredLatitude";
     public static final String GEOFENCE_PLACE_ID = "geofencePlaceId";
+    public static final String CONNECTION_USERS = "connectionUsers";
     public static final String SHARED_PREFERENCES_KEY = "myPref";
     public static final String LOCATION_QUALITY_KEY = "locationQuality";
     public static final String PREF_MAIN_LOG = "mainLog";
@@ -19,8 +20,12 @@ public class AppConstants {
     public static final int DEBUG_LOG_MAX_SIZE = 7;
     public static final int GEOFENCE_LOG_MAX_SIZE = 3;
     public static final String APPLICATION_TYPE = "1";
+    public static final String REQUEST_MAIN_TO_WATCHER = "2";
+    public static final String REQUEST_CONNECTION_USERS = "4";
     public static final String LOCATION_QUALITY_LOW = "1";
     public static final String LOCATION_QUALITY_HIGH = "2";
+    public static final String USER_CONNECT = "1";
+    public static final String USER_DISCONNECT = "2";
 
     /** classpath */
     public static final String ACTION = "com.imadoko.activity.MainActivity";
@@ -121,7 +126,9 @@ public class AppConstants {
         SERVICE_DEAD("想定外のサービス停止"),
         SETTING_OK("設定更新成功"),
         SETTING_NG("設定更新失敗"),
-        LOCATION_QUALITY_CHANGE("位置情報取得精度変更");
+        LOCATION_QUALITY_CHANGE("位置情報取得精度変更"),
+        USER_CONNECT("ユーザが接続開始"),
+        USER_DISCONNECT("ユーザが切断切断");
 
         private String status;
 

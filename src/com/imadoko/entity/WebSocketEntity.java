@@ -16,6 +16,10 @@ public class WebSocketEntity {
     private String _lng;
     /** 緯度 */
     private String _lat;
+    /** 接続ユーザ数 */
+    private int _connectionUsers;
+    /** 接続状態 */
+    private String _connectionStatus;
 
     /**
      * 認証キーを設定する
@@ -95,5 +99,37 @@ public class WebSocketEntity {
      */
     public void setLat(String lat) {
         _lat = lat;
+    }
+
+    /**
+     * 接続ユーザ数を返却する
+     * @return 接続ユーザ数
+     */
+    public int getConnectionUsers() {
+        return _connectionUsers;
+    }
+
+    /**
+     * 接続ユーザ数を設定する
+     * @param connectionUsers 接続ユーザ数
+     */
+    public void setConnectionUsers(int connectionUsers) {
+        _connectionUsers = connectionUsers;
+    }
+
+    /**
+     * ユーザの接続状態を返却する
+     * @return ユーザの接続状態
+     */
+    public String getConnectionStatus() {
+        return _connectionStatus;
+    }
+
+    /**
+     * ユーザの接続状態を設定する
+     * @param connectionStatus ユーザの接続状態
+     */
+    public void setConnectionStatus(String connectionStatus) {
+        _connectionStatus = connectionStatus;
     }
 }
