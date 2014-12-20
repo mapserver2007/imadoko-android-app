@@ -237,11 +237,6 @@ public class MainActivity extends FragmentActivity {
         showDebugLog(message);
     }
 
-    public void onUserDisconnect(String message, int userNum) {
-        _connectionUserNum.setText("接続ユーザ数：" + String.valueOf(userNum));
-        showDebugLog(message);
-    }
-
     public void onGeofence(final int nextPlaceId, final int nextTransitionType) {
         HttpRequestEntity entity = new HttpRequestEntity();
         entity.setUrl(AppConstants.GEOFENCE_STATUS_URL);

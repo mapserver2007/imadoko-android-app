@@ -62,12 +62,9 @@ public class ConnectionReceiver extends BroadcastReceiver {
             activity.showDebugLog(message + status.toString());
             break;
         case USER_CONNECT:
-            connectionUsers = bundle.getInt(AppConstants.CONNECTION_USERS);
-            activity.onUserConnect(CONNECTION.USER_CONNECT.toString(), connectionUsers);
-            break;
         case USER_DISCONNECT:
             connectionUsers = bundle.getInt(AppConstants.CONNECTION_USERS);
-            activity.onUserConnect(CONNECTION.USER_DISCONNECT.toString(), connectionUsers);
+            activity.onUserConnect(status.toString(), connectionUsers);
             break;
         default:
             break;
